@@ -28,13 +28,12 @@ def csv_to_txt(filename, outfilename='All_points.txt'):
                                                                           INTENSITY=line[6]))
 
 
-def csv_to_pcd(filename, outfilename='All_points.pcd'):
+def csv_to_pcd(files, outfilename='All_points.pcd'):
 
     pcl_file_tmp = open('All_points_temp.pcd', 'a')
     num_points = 0
     count = 0
 
-    files = filename.split()
     for file in files:
         count += 1
         print('\tWorking on file:\t{}\r'.format(count))
@@ -53,7 +52,6 @@ def csv_to_pcd(filename, outfilename='All_points.pcd'):
                                                                      INTENSITY=line[6]))
 
     pcl_file_tmp.close()
-
     pcl_file = open(outfilename, 'a')
     # Write the header for PCD files
     write_pcl_header(pcl_file, num_points)
@@ -62,7 +60,8 @@ def csv_to_pcd(filename, outfilename='All_points.pcd'):
         for line in infile:
             pcl_file.write(line)
     pcl_file.close()
-
+    # Remove temp file
+    os.remove('All_points_temp.pcd')
 
 def convert_dir(path, data_type='csv', output='txt'):
     os.chdir(path)
