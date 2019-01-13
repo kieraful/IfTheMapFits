@@ -27,36 +27,56 @@ def csv_to_txt(filename, outfilename='All_points.txt'):
                                                                           Z=line[5],
                                                                           INTENSITY=line[6]))
 
+
 def csv_to_pcd(filename, outfilename='All_points.pcd'):
 
-    num_points = find_num_points(filename);
-    csv_file = open(filename)
+    pcl_file_tmp = open('All_points_temp.pcd', 'a')
+    num_points = 0
+    count = 0
+
+    files = filename.split()
+    for file in files:
+        count += 1
+        print('\tWorking on file:\t{}\r'.format(count))
+        num_points += find_num_points(file)
+        csv_file = open(file)
+
+        csv_reader = csv.reader(csv_file, delimiter=',')
+
+        linecount = 0
+        for line in csv_reader:
+            linecount += 1
+            if linecount != 1:
+                pcl_file_tmp.write('{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(X=line[3],
+                                                                     Y=line[4],
+                                                                     Z=line[5],
+                                                                     INTENSITY=line[6]))
+
+    pcl_file_tmp.close()
+
     pcl_file = open(outfilename, 'a')
-
-    csv_reader = csv.reader(csv_file, delimiter=',')
-
     # Write the header for PCD files
-    write_pcl_header(pcl_file, num_points )
+    write_pcl_header(pcl_file, num_points)
+    # Write the points
+    with open('All_points_temp.pcd') as infile:
+        for line in infile:
+            pcl_file.write(line)
+    pcl_file.close()
 
-    linecount = 0
-    for line in csv_reader:
-        linecount += 1
-        if linecount != 1:
-            pcl_file.write('{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(X=line[3],
-                                                                 Y=line[4],
-                                                                 Z=line[5],
-                                                                 INTENSITY=line[6]))
+
 def convert_dir(path, data_type='csv', output='txt'):
     os.chdir(path)
     count = 0
     print('\nLooking for {} files...\n\n'.format(data_type))
-    for data_file in glob.glob("*.{}".format(data_type)):
-        count += 1
-        print('\tWorking on file:\t{}\r'.format(count))
-        if output == 'txt':
-            csv_to_txt(data_file)
-        elif output == 'pcd':
-            csv_to_pcd(data_file)
+
+    if output == 'pcd':
+        csv_to_pcd(glob.glob("*.{}".format(data_type)))
+    else:
+        for data_file in glob.glob("*.{}".format(data_type)):
+            count += 1
+            print('\tWorking on file:\t{}\r'.format(count))
+            if output == 'txt':
+                csv_to_txt(data_file)
     print('\n\nProcessing finished. {} files converted to Point Cloud {} format'.format(count, output))
 
 def write_pcl_header(file, n_points):
