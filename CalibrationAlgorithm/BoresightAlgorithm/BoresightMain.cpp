@@ -1,6 +1,6 @@
 #include "CalibrationFuntions.h"
 
-char * FILENAME = "All_points.pcd";
+char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
 
 int main() {
 	/*
