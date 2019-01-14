@@ -81,7 +81,7 @@ def convert_dir(path, data_type='csv', output='txt'):
 def write_pcl_header(file, n_points):
 
     file.write('VERSION .7\n')
-    file.write('FIELDS x y z int\n')
+    file.write('FIELDS x y z intensity\n')
     file.write('SIZE 4 4 4 4\n')
     file.write('TYPE F F F F\n')
     file.write('COUNT 1 1 1 1\n')
