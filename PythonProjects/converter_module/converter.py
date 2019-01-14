@@ -36,8 +36,7 @@ def csv_to_pcd(files, outfilename='All_points.pcd'):
 
     for file in files:
         count += 1
-        print('\tWorking on file:\t{}\r'.format(count))
-        num_points += find_num_points(file)
+        print('\tWorking on file:\t{}\t{}\r'.format(count, num_points))
         csv_file = open(file)
 
         csv_reader = csv.reader(csv_file, delimiter=',')
@@ -46,6 +45,7 @@ def csv_to_pcd(files, outfilename='All_points.pcd'):
         for line in csv_reader:
             linecount += 1
             if linecount != 1:
+                num_points += 1
                 pcl_file_tmp.write('{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(X=line[3],
                                                                      Y=line[4],
                                                                      Z=line[5],
