@@ -28,28 +28,32 @@ def csv_to_txt(filename, outfilename='All_points.txt'):
                                                                           INTENSITY=line[6]))
 
 
-def csv_to_pcd(files, outfilename='All_points.pcd'):
+def csv_to_pcd(files, outfilename='All_points', decimate=1):
 
+    outfilename = outfilename.strip('.pcd') + '_dec{}.pcd'.format(decimate)
     pcl_file_tmp = open('All_points_temp.pcd', 'a')
     num_points = 0
     count = 0
+    used = 0
 
     for file in files:
         count += 1
-        print('\tWorking on file:\t{}\t{}\r'.format(count, num_points))
-        csv_file = open(file)
+        if decimate is not None and count%decimate == 0:
+            used += 1
+            print('\tWorking on file:\t{}\t{}\r'.format(used, num_points))
+            csv_file = open(file)
 
-        csv_reader = csv.reader(csv_file, delimiter=',')
+            csv_reader = csv.reader(csv_file, delimiter=',')
 
-        linecount = 0
-        for line in csv_reader:
-            linecount += 1
-            if linecount != 1:
-                num_points += 1
-                pcl_file_tmp.write('{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(X=line[3],
-                                                                     Y=line[4],
-                                                                     Z=line[5],
-                                                                     INTENSITY=line[6]))
+            linecount = 0
+            for line in csv_reader:
+                linecount += 1
+                if linecount != 1:
+                    num_points += 1
+                    pcl_file_tmp.write('{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(X=line[3],
+                                                                         Y=line[4],
+                                                                         Z=line[5],
+                                                                         INTENSITY=line[6]))
 
     pcl_file_tmp.close()
     pcl_file = open(outfilename, 'a')
@@ -63,13 +67,13 @@ def csv_to_pcd(files, outfilename='All_points.pcd'):
     # Remove temp file
     os.remove('All_points_temp.pcd')
 
-def convert_dir(path, data_type='csv', output='txt'):
+def convert_dir(path, data_type='csv', output='txt', decimate=1):
     os.chdir(path)
     count = 0
     print('\nLooking for {} files...\n\n'.format(data_type))
 
     if output == 'pcd':
-        csv_to_pcd(glob.glob("*.{}".format(data_type)))
+        csv_to_pcd(glob.glob("*.{}".format(data_type)), decimate=decimate)
     else:
         for data_file in glob.glob("*.{}".format(data_type)):
             count += 1
