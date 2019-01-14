@@ -21,10 +21,10 @@ def csv_to_txt(filename, outfilename='All_points.txt'):
     for line in csv_reader:
         linecount += 1
         if linecount != 1:
-            text_file.write('{TIME}\n{X}\t{Y}\t{Z}\t{INTENSITY}\n'.format(TIME=line[10],
-                                                                          X=line[3],
-                                                                          Y=line[4],
-                                                                          Z=line[5],
+            text_file.write('{LASER}\n{Az}\t{Va}\t{R}\t{TIME}\t{INTENSITY}\n'.format(TIME=line[10],
+                                                                          Az=line[8],
+                                                                          Va=line[12],
+                                                                          R=line[9],
                                                                           INTENSITY=line[6]))
 
 
