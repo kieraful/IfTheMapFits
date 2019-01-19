@@ -11,6 +11,7 @@
 #include <stdexcept>
 #include <iomanip> 
 #include <string>
+#include <math.h>  
 
 //PCL includes
 //#include <pcl/io/pcd_io.h>
