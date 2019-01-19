@@ -13,6 +13,7 @@
 #include <string>
 #include <math.h>  
 
+
 //PCL includes
 //#include <pcl/io/pcd_io.h>
 //#include <pcl/point_types.h>
@@ -90,14 +91,15 @@ void Convert_R_to_Angles(Matrix3b3 R, double& Omega, double& Phi, double& Kappa)
 
 void  Normalization_Condition(MatrixXd &xy_i1, MatrixXd &xy_i2, MatrixXd& H1, MatrixXd& H2);
 
+// ------------------------------------------------------------------------------
+
 void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_points);
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
 void visualize_cloud(char *filename); // use PCL to visualize cloud data
 
-
-// ------------------------------------------------------------------------------
+pcl::PointCloud<pcl::PointXYZ> FitLargestPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_filtered)
 
 
 

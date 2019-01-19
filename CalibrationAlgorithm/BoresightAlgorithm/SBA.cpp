@@ -157,7 +157,7 @@ void Perform_BA(VectorXi & Point_Labels,
 	}
 
 
-	Write_Mat("firstground.txt",ground,3);
+	Write_Mat("..txt",ground,3);
 
 	//This scale factor can help becoming ill-configured in design matrix
 	MatrixXd PS_0 = IO_scalfact * camera_params.PS_0;
