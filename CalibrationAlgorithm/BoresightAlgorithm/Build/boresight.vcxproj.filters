@@ -15,9 +15,15 @@
     <ClCompile Include="..\CalibrationFunctions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\SBA.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CalibrationFuntions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\SBA_NoCal.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

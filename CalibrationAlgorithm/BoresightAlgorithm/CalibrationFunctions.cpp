@@ -235,11 +235,66 @@ void visualize_cloud(char *filename)
 	//blocks until the cloud is actually rendered
 	viewer.showCloud(cloud);
 
-	while (!viewer.wasStopped())
-	{
-		//you can also do cool processing here
-		//FIXME: Note that this is running in a separate thread from viewerPsycho
-		//and you should guard against race conditions yourself...
-		user_data++;
-	}
+	while (!viewer.wasStopped()){}
 }
+
+
+
+pcl::PointCloud<pcl::PointXYZ> FitPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_filtered, int max_planes) {
+
+	/*
+	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
+	int max_planes:										 This is the maximum number of planes to find in the cloud_filtered
+	
+	*/
+
+	int n_planes = 0; // Number of planes found in dataset, init to 0
+
+	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
+	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+	// Create the segmentation object
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
+	// Optional
+	seg.setOptimizeCoefficients(true);
+	seg.setModelType(pcl::SACMODEL_PLANE);
+	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setMaxIterations(1000);
+	seg.setDistanceThreshold(0.01);
+
+	// Create the filtering object
+	pcl::ExtractIndices<pcl::PointXYZ> extract;
+
+	int i = 0, nr_points = (int)cloud_filtered->points.size();
+	// While 30% of the original cloud is still there
+	while (cloud_filtered->points.size() > 0.3 * nr_points && n_planes <= max_planes)
+	{
+		// Segment the largest planar component from the remaining cloud
+		seg.setInputCloud(cloud_filtered);
+		pcl::ScopeTime scopeTime("Test loop");
+		{
+			seg.segment(*inliers, *coefficients);
+		}
+		if (inliers->indices.size() == 0)
+		{
+			std::cerr << "Could not estimate a planar model for the given dataset." << std::endl;
+			break;
+		}
+
+		n_planes++ 
+
+		// Extract the inliers
+		extract.setInputCloud(cloud_filtered);
+		extract.setIndices(inliers);
+		extract.setNegative(false);
+		extract.filter(*cloud_p);
+		std::cerr << "PointCloud representing plane " << n_plane <<  ": " << cloud_p->width * cloud_p->height << " data points." << std::endl;
+
+	}
+
+
+	return cloud_p
+
+}
+
+
+

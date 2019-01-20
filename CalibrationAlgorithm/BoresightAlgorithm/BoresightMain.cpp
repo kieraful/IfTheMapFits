@@ -11,12 +11,30 @@ int main() {
 
 	*/
 
-	// TODO : GET LiDAR DATA (Either only feature data or full dataset, feature preferred) 
-	pcl::PointCloud<pcl::PointXYZI> Novatel_cloud;
-	Read_Lidar_points(FILENAME, Novatel_cloud);
 
-	//Mesh Shapes
-	//pcl::NormalEstimation<pcl::PointXYZI, pcl::Normal> normal_estimator;
+	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
+
+	pcl::PointCloud<pcl::PointXYZI> Novatel_cloud;
+	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
+
+	// ---------------------------------------STEP 2: Median Filter Data-----------------------------------------------------------------------------------------
+
+		//TODO: use PCL to filter data
+
+	// ---------------------------------------STEP 3: Fit all planes-----------------------------------------------------------------------------------------
+
+
+		//TODO: Incorporate Plane fitting algorithm.
+		//TODO: Find how to uniquely describe planes, as output from plane-fitting
+
+	
+	// ---------------------------------------STEP 4: Downsample pts on Planes-----------------------------------------------------------------------------------------
+
+
+		//TODO: downsample all points on each plane. These will be # of EQUATIONS
+
+	// --------------------------------------------------------------------------------------------------------------------------------
+
 
 
 
@@ -28,7 +46,7 @@ int main() {
 
 	// VISUALIZE
 
-	visualize_cloud(FILENAME);
+	//visualize_cloud(FILENAME);
 
 
 
