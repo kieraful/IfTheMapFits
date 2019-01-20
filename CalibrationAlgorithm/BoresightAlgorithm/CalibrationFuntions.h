@@ -49,6 +49,7 @@ typedef Matrix<double, Dynamic, 2> Matrixdby2;
 typedef Matrix<int, Dynamic, 2> Matrixdby2i;
 
 typedef pcl::PointCloud<pcl::PointXYZI>::Ptr PointCloudXYZIptr;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloudXYZI;
 
 #define MaxMatSize 10000000
 #define pi 3.14159265358979323846 
@@ -108,12 +109,11 @@ void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_poi
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
-void visualize_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud); // use PCL to visualize cloud data
+void visualize_cloud(PointCloudXYZIptr cloud); // use PCL to visualize cloud data
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered, int max_planes);
+PointCloudXYZIptr FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6);
 
-
-
+PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size = 0.001f);
 
 
 

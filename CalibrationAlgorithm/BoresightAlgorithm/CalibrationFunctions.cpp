@@ -232,7 +232,7 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
 }
 
-void visualize_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+void visualize_cloud(PointCloudXYZIptr cloud)
 {
 	pcl::visualization::CloudViewer viewer("Cloud Viewer");
 	pcl::ScopeTime show_time("Printing cloud");
@@ -244,7 +244,7 @@ void visualize_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 
 
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered, int max_planes) {
+PointCloudXYZIptr FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes) {
 
 	/*
 	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
@@ -254,7 +254,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Pt
 
 	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
+	PointCloudXYZIptr cloud_p(new PointCloudXYZI), cloud_f(new PointCloudXYZI);
 
 	// Fill in the cloud data
 
@@ -263,7 +263,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Pt
 	
 
 	// Create the segmentation object
-	pcl::SACSegmentation<pcl::PointXYZ> seg;
+	pcl::SACSegmentation<pcl::PointXYZI> seg;
 	// Optional
 	seg.setOptimizeCoefficients(true);
 	seg.setModelType(pcl::SACMODEL_PLANE);
@@ -272,7 +272,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Pt
 	seg.setDistanceThreshold(0.01);
 
 	// Create the filtering object
-	pcl::ExtractIndices<pcl::PointXYZ> extract;
+	pcl::ExtractIndices<pcl::PointXYZI> extract;
 
 	int i = 0, nr_points = (int)cloud_filtered->points.size();
 	// While 30% of the original cloud is still there
@@ -280,7 +280,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Pt
 	{
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud(cloud_filtered);
-		pcl::ScopeTime scopeTime("Test loop");
+		pcl::ScopeTime scopeTime("Plane Fitting");
 		{
 			seg.segment(*inliers, *coefficients);
 		}
@@ -297,13 +297,27 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Pt
 		extract.setIndices(inliers);
 		extract.setNegative(false);
 		extract.filter(*cloud_p);
-		std::cerr << "PointCloud representing plane " << n_planes <<  ": " << cloud_p->width * cloud_p->height << " data points." << std::endl;
+		std::clog << "PointCloud representing plane " << n_planes <<  ": " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 	}
 
 
 	return cloud_p;
 
+}
+
+PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size)
+{
+	PointCloudXYZIptr filtered_cloud(new PointCloudXYZI);
+	pcl::VoxelGrid<pcl::PointXYZI> vox_grid;
+	pcl::ScopeTime filterscope("Filtering dataset");
+	{
+		vox_grid.setInputCloud(input_cloud);
+		vox_grid.setLeafSize(leaf_size, leaf_size, leaf_size);
+		vox_grid.filter(*filtered_cloud);
+	}
+
+	return filtered_cloud;
 }
 
 

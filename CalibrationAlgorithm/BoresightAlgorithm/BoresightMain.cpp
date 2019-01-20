@@ -31,25 +31,26 @@ int main() {
 	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
 
 	std::clog << "Opening file: " << FILENAME << " (can take up to 5 minutes)" << endl;
-	PointCloudXYZIptr Novatel_cloud(new PointCloudXYZIptr);
+	PointCloudXYZIptr Novatel_cloud(new PointCloudXYZI);
 	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
 
 
-	// ---------------------------------------STEP 2: Median Filter Data-----------------------------------------------------------------------------------------
+	clog << "\n-------------------------STEP 2: Filter Data------------------------------------------------------- ";
 
 		//TODO: use PCL to filter data
 
 	// Create the filtering object and downsample.
-	pcl::VoxelGrid<pcl::PointXYZI> vox_grid;
-	vox_grid.setInputCloud(Novatel_cloud);
-	vox_grid.setLeafSize(0.01f, 0.01f, 0.01f);
-	vox_grid.filter(*Novatel_cloud);
+	PointCloudXYZIptr filter_cloud = filter_and_downsample(Novatel_cloud, 0.1f);
 
 
-	// ---------------------------------------STEP 3: Fit all planes-----------------------------------------------------------------------------------------
+	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------";
 
 
 		//TODO: Incorporate Plane fitting algorithm.
+	
+	PointCloudXYZIptr planes_in_cloud = FitPlanes(filter_cloud);
+
+
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
 
 	
