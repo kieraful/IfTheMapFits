@@ -48,7 +48,7 @@ int main() {
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	PointCloudXYZIptr planes_in_cloud = FitPlanes(filter_cloud, 2);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 2);
 
 
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
@@ -71,14 +71,7 @@ int main() {
 
 
 	// VISUALIZE
+	visualize_planes(planes_in_cloud);
 
-	visualize_cloud(planes_in_cloud);
-
-
-
-
-
-
-
-		return 0;
-	}
+	return 0;
+}

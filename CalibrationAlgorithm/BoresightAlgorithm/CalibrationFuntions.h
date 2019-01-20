@@ -75,7 +75,7 @@ struct CameraParam {
 struct Plane {
 
 	double a1, a2, a3, b; // plane parameters
-	MatrixXd points_in;
+	PointCloudXYZIptr points_on_plane;
 
 };
 
@@ -109,12 +109,11 @@ void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_poi
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
-void visualize_cloud(PointCloudXYZIptr cloud); // use PCL to visualize cloud data
-
-PointCloudXYZIptr FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6);
+vector<Plane> FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6);
 
 PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size = 0.001f);
 
+void visualize_planes(vector<Plane> planes);
 
 
 #endif
