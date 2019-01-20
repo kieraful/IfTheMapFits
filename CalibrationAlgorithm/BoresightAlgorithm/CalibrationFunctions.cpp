@@ -2,9 +2,17 @@
 
 
 
-void Read_Lidar_points(char *FileName, pcl::PointCloud<pcl::PointXYZI> &cloud)
+void Read_Lidar_points(char *filename, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 {
-	pcl::io::loadPCDFile(FileName, cloud);
+	pcl::PCDReader reader;
+	pcl::ScopeTime readfilescope("File Read");
+	{
+		if (reader.read(filename, *cloud) == -1) {
+			std::cerr << "File could not be opened:\n\t" << filename << endl;
+		}
+
+		std::clog << "File read successful\n";
+	}
 }
 
 //Receives the name of a file "FaileName" containing a numerical matrix, and read the matrix data into variable "m"
@@ -224,23 +232,19 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 	return sqrt(pow(x1 - x2, 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
 }
 
-void visualize_cloud(char *filename)
+void visualize_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
 {
-	int user_data = 0;
-	pcl::PointCloud<pcl::PointXYZI>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZI>);
-	pcl::io::loadPCDFile(filename, *cloud);
-
 	pcl::visualization::CloudViewer viewer("Cloud Viewer");
-
-	//blocks until the cloud is actually rendered
-	viewer.showCloud(cloud);
-
+	pcl::ScopeTime show_time("Printing cloud");
+	{
+		viewer.showCloud(cloud);
+	}
 	while (!viewer.wasStopped()){}
 }
 
 
 
-pcl::PointCloud<pcl::PointXYZ> FitPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_filtered, int max_planes) {
+pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered, int max_planes) {
 
 	/*
 	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
@@ -248,10 +252,16 @@ pcl::PointCloud<pcl::PointXYZ> FitPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_fi
 	
 	*/
 
+	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
+
+	// Fill in the cloud data
 
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices());
+	
+
 	// Create the segmentation object
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
 	// Optional
@@ -280,19 +290,19 @@ pcl::PointCloud<pcl::PointXYZ> FitPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_fi
 			break;
 		}
 
-		n_planes++ 
+		n_planes++;
 
 		// Extract the inliers
 		extract.setInputCloud(cloud_filtered);
 		extract.setIndices(inliers);
 		extract.setNegative(false);
 		extract.filter(*cloud_p);
-		std::cerr << "PointCloud representing plane " << n_plane <<  ": " << cloud_p->width * cloud_p->height << " data points." << std::endl;
+		std::cerr << "PointCloud representing plane " << n_planes <<  ": " << cloud_p->width * cloud_p->height << " data points." << std::endl;
 
 	}
 
 
-	return cloud_p
+	return cloud_p;
 
 }
 

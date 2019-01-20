@@ -326,11 +326,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <ItemGroup>
     <ClCompile Include="..\BoresightMain.cpp" />
     <ClCompile Include="..\CalibrationFunctions.cpp" />
-    <ClCompile Include="..\SBA.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\CalibrationFuntions.h" />
-    <ClInclude Include="..\SBA_NoCal.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -27,6 +27,15 @@
 #include <pcl/io/pcd_io.h>
 //#include <pcl/recognition/implicit_shape_model.h>
 //#include <pcl/recognition/impl/implicit_shape_model.hpp>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/common/time.h>
+#include <pcl/filters/voxel_grid.h>
 
 
 using namespace std;
@@ -79,7 +88,6 @@ struct LidarPt {
 
 // ------------------------------ DR. SHAHBAHZI CODE ----------------------------
 
-void Read_Lidar_points(char * FileName, pcl::PointCloud<pcl::PointXYZI> &cloud);//reads a PCD file to a PCL point cloud
 
 void Read_Mat(char *FileName, MatrixXd& m);//reads a formatted file to a matrix
 
@@ -93,13 +101,15 @@ void  Normalization_Condition(MatrixXd &xy_i1, MatrixXd &xy_i2, MatrixXd& H1, Ma
 
 // ------------------------------------------------------------------------------
 
+void Read_Lidar_points(char * FileName, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);//reads a PCD file to a PCL point cloud
+
 void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_points);
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
-void visualize_cloud(char *filename); // use PCL to visualize cloud data
+void visualize_cloud(pcl::PointCloud<pcl::PointXYZI>::Ptr cloud); // use PCL to visualize cloud data
 
-pcl::PointCloud<pcl::PointXYZ> FitLargestPlanes(pcl::PointCloud<pcl::PointXYZ> cloud_filtered)
+pcl::PointCloud<pcl::PointXYZ>::Ptr FitPlanes(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered, int max_planes);
 
 
 
