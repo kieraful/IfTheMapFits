@@ -48,6 +48,7 @@ typedef Matrix<double, 3, 4> Matrix3b4;
 typedef Matrix<double, Dynamic, 2> Matrixdby2;
 typedef Matrix<int, Dynamic, 2> Matrixdby2i;
 
+typedef pcl::PointCloud<pcl::PointXYZI>::Ptr PointCloudXYZIptr;
 
 #define MaxMatSize 10000000
 #define pi 3.14159265358979323846 

@@ -31,7 +31,7 @@ int main() {
 	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
 
 	std::clog << "Opening file: " << FILENAME << " (can take up to 5 minutes)" << endl;
-	pcl::PointCloud<pcl::PointXYZI>::Ptr Novatel_cloud(new pcl::PointCloud<pcl::PointXYZI>);
+	PointCloudXYZIptr Novatel_cloud(new PointCloudXYZIptr);
 	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
 
 
@@ -39,11 +39,11 @@ int main() {
 
 		//TODO: use PCL to filter data
 
-	// Create the filtering object: downsample the dataset using a leaf size of 1cm
-	pcl::VoxelGrid<pcl::PointCloud> sor;
-	sor.setInputCloud(cloud_blob);
-	sor.setLeafSize(0.01f, 0.01f, 0.01f);
-	sor.filter(*cloud_filtered_blob);
+	// Create the filtering object and downsample.
+	pcl::VoxelGrid<pcl::PointXYZI> vox_grid;
+	vox_grid.setInputCloud(Novatel_cloud);
+	vox_grid.setLeafSize(0.01f, 0.01f, 0.01f);
+	vox_grid.filter(*Novatel_cloud);
 
 
 	// ---------------------------------------STEP 3: Fit all planes-----------------------------------------------------------------------------------------
