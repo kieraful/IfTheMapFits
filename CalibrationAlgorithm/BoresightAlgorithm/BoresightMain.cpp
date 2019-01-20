@@ -35,7 +35,7 @@ int main() {
 	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
 
 
-	clog << "\n-------------------------STEP 2: Filter Data------------------------------------------------------- ";
+	clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
 		//TODO: use PCL to filter data
 
@@ -43,12 +43,12 @@ int main() {
 	PointCloudXYZIptr filter_cloud = filter_and_downsample(Novatel_cloud, 0.1f);
 
 
-	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------";
+	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	PointCloudXYZIptr planes_in_cloud = FitPlanes(filter_cloud);
+	PointCloudXYZIptr planes_in_cloud = FitPlanes(filter_cloud, 2);
 
 
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
@@ -72,7 +72,7 @@ int main() {
 
 	// VISUALIZE
 
-	visualize_cloud(Novatel_cloud);
+	visualize_cloud(planes_in_cloud);
 
 
 

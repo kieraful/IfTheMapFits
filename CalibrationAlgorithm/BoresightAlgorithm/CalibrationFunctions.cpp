@@ -15,7 +15,7 @@ void Read_Lidar_points(char *filename, pcl::PointCloud<pcl::PointXYZI>::Ptr clou
 	}
 }
 
-//Receives the name of a file "FaileName" containing a numerical matrix, and read the matrix data into variable "m"
+//Receives the name of a file "FileName" containing a numerical matrix, and read the matrix data into variable "m"
 void Read_Mat(char *FileName, MatrixXd& m) {
 
 	m.resize(0, 0);
