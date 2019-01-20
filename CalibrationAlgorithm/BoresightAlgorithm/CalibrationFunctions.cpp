@@ -235,7 +235,7 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 
 
 
-vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes) {
+vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_files) {
 
 	/*
 	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
@@ -303,10 +303,12 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes) {
 		temp_plane.points_on_plane = cloud_p;
 
 		//write plane to file
-		std::stringstream ss;
-		ss << "Cloud_Plane_" << i << ".pcd";
-		writer.write<pcl::PointXYZI>(ss.str(), *cloud_p, false);
-
+		if (make_files)
+		{
+			std::stringstream ss;
+			ss << "Cloud_Plane_" << i << ".pcd";
+			writer.write<pcl::PointXYZI>(ss.str(), *cloud_p, false);
+		}
 
 		
 		//add plane to plane cloud
@@ -378,7 +380,7 @@ void visualize_planes(vector<Plane> planes)
 		//Add the point cloud
 		ss.clear();
 		ss << "Cloud_" << i;
-		viewer.addPointCloud<pcl::PointXYZI>(planes[i].points_on_plane, "All Planes");
+		viewer.addPointCloud<pcl::PointXYZI>(planes[i].points_on_plane, ss.str());
 	}
 
 

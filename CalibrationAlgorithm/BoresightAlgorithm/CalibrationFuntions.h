@@ -109,7 +109,7 @@ void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_poi
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
-vector<Plane> FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6);
+vector<Plane> FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6, bool make_files=false);
 
 PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size = 0.001f);
 

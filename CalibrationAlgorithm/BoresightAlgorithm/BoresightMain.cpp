@@ -48,7 +48,7 @@ int main() {
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 2);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 13);
 
 
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
