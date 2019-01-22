@@ -81,6 +81,9 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\erleahy\Downloads\Eigen;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:\Program Files\PCL 1.8.1\3rdParty\VTK\include\vtk-8.0;C:\Program Files\PCL 1.8.1\include\pcl-1.8;C:\Program Files\PCL 1.8.1\3rdParty\Eigen\eigen3;C:\Program Files\PCL 1.8.1\3rdParty\Boost\include\boost-1_64;C:\Program Files\OpenNI2\Include;C:\Program Files\PCL 1.8.1\3rdParty\FLANN\include;C:\Program Files\PCL 1.8.1\3rdParty\Qhull\include;C:\Program Files\PCL 1.8.1\3rdParty\VTK\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>

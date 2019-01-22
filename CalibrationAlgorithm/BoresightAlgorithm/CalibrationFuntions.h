@@ -11,6 +11,8 @@
 #include <stdexcept>
 #include <iomanip> 
 #include <string>
+#include <math.h>  
+
 
 //PCL includes
 //#include <pcl/io/pcd_io.h>
@@ -25,6 +27,15 @@
 #include <pcl/io/pcd_io.h>
 //#include <pcl/recognition/implicit_shape_model.h>
 //#include <pcl/recognition/impl/implicit_shape_model.hpp>
+#include <pcl/ModelCoefficients.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/filters/extract_indices.h>
+#include <pcl/common/time.h>
+#include <pcl/filters/voxel_grid.h>
 
 
 using namespace std;
@@ -37,6 +48,8 @@ typedef Matrix<double, 3, 4> Matrix3b4;
 typedef Matrix<double, Dynamic, 2> Matrixdby2;
 typedef Matrix<int, Dynamic, 2> Matrixdby2i;
 
+typedef pcl::PointCloud<pcl::PointXYZI>::Ptr PointCloudXYZIptr;
+typedef pcl::PointCloud<pcl::PointXYZI> PointCloudXYZI;
 
 #define MaxMatSize 10000000
 #define pi 3.14159265358979323846 
@@ -62,7 +75,7 @@ struct CameraParam {
 struct Plane {
 
 	double a1, a2, a3, b; // plane parameters
-	MatrixXd points_in;
+	PointCloudXYZIptr points_on_plane;
 
 };
 
@@ -77,7 +90,6 @@ struct LidarPt {
 
 // ------------------------------ DR. SHAHBAHZI CODE ----------------------------
 
-void Read_Lidar_points(char * FileName, pcl::PointCloud<pcl::PointXYZI> &cloud);//reads a PCD file to a PCL point cloud
 
 void Read_Mat(char *FileName, MatrixXd& m);//reads a formatted file to a matrix
 
@@ -89,18 +101,19 @@ void Convert_R_to_Angles(Matrix3b3 R, double& Omega, double& Phi, double& Kappa)
 
 void  Normalization_Condition(MatrixXd &xy_i1, MatrixXd &xy_i2, MatrixXd& H1, MatrixXd& H2);
 
+// ------------------------------------------------------------------------------
+
+void Read_Lidar_points(char * FileName, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud);//reads a PCD file to a PCL point cloud
+
 void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_points);
 
 double euclidian_dist(double x1, double y1, double z1, double x2, double y2, double z2);
 
-void visualize_cloud(char *filename); // use PCL to visualize cloud data
+vector<Plane> FitPlanes(PointCloudXYZIptr cloud_filtered, int max_planes = 6, bool make_files=false);
 
+PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size = 0.001f);
 
-// ------------------------------------------------------------------------------
-
-
-
-
+void visualize_planes(vector<Plane> planes);
 
 
 #endif
