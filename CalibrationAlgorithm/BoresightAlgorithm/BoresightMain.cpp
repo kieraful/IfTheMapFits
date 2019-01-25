@@ -1,6 +1,6 @@
 #include "CalibrationFuntions.h"
 
-char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points_dec5.pcd";
+char * FILENAME = "..\\..\\..\\IfTheMapFits\\Data\\FirstDataset\\All_points_resampled.pcd";
 
 int main() {
 	/*
@@ -48,7 +48,7 @@ int main() {
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 13);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 1);
 
 
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
@@ -69,9 +69,19 @@ int main() {
 
 
 
+	clog << "\n-------------------------STEP 4: Visualize-----------------------------------------------------\n";
 
 	// VISUALIZE
 	visualize_planes(planes_in_cloud);
+
+	//pcl::visualization::PCLVisualizer viewer("If The Map Fits");
+
+	//viewer.addPointCloud<pcl::PointXYZI>(Novatel_cloud);
+
+	//while (!viewer.wasStopped())
+	//{
+	//	viewer.spinOnce();
+	//}
 
 	return 0;
 }
