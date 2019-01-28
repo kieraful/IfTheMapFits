@@ -2,7 +2,7 @@
 
 
 
-void Read_Lidar_points(char *filename, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+void Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
 {
 	pcl::PCDReader reader;
 	pcl::ScopeTime readfilescope("File Read");
@@ -245,7 +245,6 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 
 	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
-	double a, b, c; // Plane parameters
 	vector<Plane> planes;
 	Plane temp_plane;
 	PointCloudXYZIptr cloud_p(new PointCloudXYZI), cloud_f(new PointCloudXYZI), all_planes(new PointCloudXYZI);
@@ -263,7 +262,7 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 	seg.setModelType(pcl::SACMODEL_PLANE);
 	seg.setMethodType(pcl::SAC_RANSAC);
 	seg.setMaxIterations(1000);
-	seg.setDistanceThreshold(0.01);
+	seg.setDistanceThreshold(0.1);
 
 	// Create the filtering object
 	pcl::ExtractIndices<pcl::PointXYZI> extracter;
@@ -395,3 +394,19 @@ void visualize_planes(vector<Plane> planes)
 	}
 }
 
+
+void visualize_cloud(PointCloudXYZptr cloud)
+{
+
+	clog << "Visualizing cloud...\n";
+	pcl::visualization::PCLVisualizer viewer("If The Map Fits");
+	viewer.addPointCloud<pcl::PointXYZ>(cloud);
+
+	while (!viewer.wasStopped())
+	{
+		viewer.spinOnce();
+	}
+
+
+
+}

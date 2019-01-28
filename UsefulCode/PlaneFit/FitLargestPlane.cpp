@@ -71,3 +71,47 @@ main(int argc, char** argv)
 
     return (0);
 }
+
+
+
+
+	clog << "\n-------------------------STEP 2: upsample data -------------------------------------------------------\n";
+
+	/*
+
+	// Create K-D Tree
+	//pcl::search::KdTree<pcl::PointXYZI>::Ptr kd_tree(new pcl::search::KdTree<pcl::PointXYZI>);
+
+	// Create point normals
+	//pcl::PointCloud<pcl::PointNormal> normals;
+
+	// Create a KD-Tree
+	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
+
+	// Output has the PointNormal type in order to store the normals calculated by MLS
+	pcl::PointCloud<pcl::PointNormal> mls_points;
+
+	// Init object (second point type is for the normals, even if unused)
+	pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal> mls;
+	
+	mls.setComputeNormals(true);
+	
+	// Set parameters
+	mls.setInputCloud(Novatel_cloud);
+	mls.setPolynomialOrder(2);
+	mls.setSearchMethod(tree);
+	mls.setSearchRadius(0.03);
+	mls.setUpsamplingMethod(pcl::MovingLeastSquares<pcl::PointXYZ, pcl::PointNormal>::UpsamplingMethod::SAMPLE_LOCAL_PLANE);
+	mls.setUpsamplingRadius(0.005);
+	mls.setUpsamplingStepSize(0.005);
+	
+	// Reconstruct
+	mls.process(mls_points);
+	
+	//Place back in point cloud
+	pcl::copyPointCloud(mls_points, *Novatel_cloud);
+
+	pcl::PCDWriter writer;
+	writer.write("Upsampled_PointCloud.pcd", *Novatel_cloud);
+
+	*/
