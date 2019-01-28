@@ -5,13 +5,12 @@
 #include <Eigen\Dense> //for Eigen library
 #include <Eigen\Core>
 #include <fstream> //for read/write files
-#include <stdlib.h>// for system("pause") and exit_failure
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
 #include <iomanip> 
 #include <string>
-#include <math.h>  
+#include <cmath>  
 
 
 //PCL includes
