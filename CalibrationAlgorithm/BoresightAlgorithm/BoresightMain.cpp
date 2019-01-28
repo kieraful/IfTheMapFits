@@ -1,8 +1,6 @@
 #include "CalibrationFuntions.h"
 
-char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points_dec5.pcd";
-
-char * FILENAME2 = "Upsampled_PointCloud.pcd";
+char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points_resampled.pcd";
 
 int main() {
 	/*
@@ -36,29 +34,17 @@ int main() {
 	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
 	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
 
-	std::clog << "Opening file: " << FILENAME2 << " (can take up to 5 minutes)" << endl;
-	PointCloudXYZptr Novatel_cloud2(new PointCloudXYZ);
-	Read_Lidar_points(FILENAME2, Novatel_cloud2); // Scene 1, Orientation 1
 
-	clog << "\n-------------------------STEP 2: Mesh Data-------------------------------------------------------\n";
+	clog << "\n-------------------------STEP 2: Mesh Data and Resample-------------------------------------------------------\n";
 
-	// Normal estimation*
-	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> normal_estimation;
-	pcl::PointCloud<pcl::Normal>::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>);
-	tree->setInputCloud(Novatel_cloud);
-	normal_estimation.setInputCloud(Novatel_cloud);
-	normal_estimation.setSearchMethod(tree);
-	normal_estimation.setKSearch(20);
-	normal_estimation.compute(*normals);
-	//* normals should not contain the point normals + surface curvatures
+	// Done with cloud compare?
 
 	clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
 		//TODO: use PCL to filter data
 
 	// Create the filtering object and downsample.
-	//PointCloudXYZIptr filter_cloud = filter_and_downsample(Novatel_cloud, 0.1f);
+	PointCloudXYZptr filter_cloud = filter_and_downsample(Novatel_cloud, 0.1f);
 
 
 	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
@@ -66,7 +52,7 @@ int main() {
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	//vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 4);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 3, true);
 
 
 		//TODO: Find how to uniquely describe planes, as output from plane-fitting
@@ -89,9 +75,7 @@ int main() {
 
 
 	// VISUALIZE
-	//visualize_planes(planes_in_cloud);
-	visualize_cloud(Novatel_cloud);
-	visualize_cloud(Novatel_cloud2);
+	visualize_planes(planes_in_cloud);
 
 
 	return 0;
