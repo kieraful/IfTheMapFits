@@ -52,16 +52,19 @@ int main() {
 
 		//TODO: Incorporate Plane fitting algorithm.
 	
-	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 3, true);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 23, true);
 
 
-		//TODO: Find how to uniquely describe planes, as output from plane-fitting
-
+	// Find the largest planes
+	std::sort(planes_in_cloud.begin(), planes_in_cloud.end(), sort_cloud); // sort based off cloud size
+	planes_in_cloud.resize(6); //truncate to keep largest planes
 	
-	// ---------------------------------------STEP 4: Downsample pts on Planes-----------------------------------------------------------------------------------------
 
+	clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
 
 		//TODO: downsample all points on each plane. These will be # of EQUATIONS
+		
+	
 
 	// --------------------------------------------------------------------------------------------------------------------------------
 

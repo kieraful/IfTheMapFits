@@ -17,6 +17,8 @@ c:\users\edmond\documents\school\courses\fifthyear\engo500\ifthemapfits\calibrat
 ..\CalibrationFunctions.cpp(41): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 ..\CalibrationFunctions.cpp(59): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 ..\CalibrationFunctions.cpp(199): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+..\CalibrationFunctions.cpp(364): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+..\CalibrationFunctions.cpp(365): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
 C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(549): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(525): note: while compiling class template member function 'bool pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>::getColor(vtkSmartPointer<vtkDataArray> &) const'
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/pcl_visualizer.h(907): note: see reference to class template instantiation 'pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>' being compiled
