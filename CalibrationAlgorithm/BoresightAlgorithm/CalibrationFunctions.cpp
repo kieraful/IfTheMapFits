@@ -400,9 +400,11 @@ void visualize_cloud(PointCloudXYZptr cloud)
 {
 
 	clog << "Visualizing cloud...\n";
+	pcl::visualization::PCLVisualizer viewer("If The Map Fits");
 
 	while (!viewer.wasStopped())
 	{
+		viewer.addPointCloud<pcl::PointXYZ>(cloud);
 		viewer.spinOnce();
 	}
 
