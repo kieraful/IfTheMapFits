@@ -2,17 +2,19 @@
 
 
 
-void Read_Lidar_points(char *filename, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+bool Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
 {
 	pcl::PCDReader reader;
 	pcl::ScopeTime readfilescope("File Read");
 	{
 		if (reader.read(filename, *cloud) == -1) {
 			std::cerr << "File could not be opened:\n\t" << filename << endl;
+			return false;
 		}
 
 		std::clog << "File read successful\n";
 	}
+	return true;
 }
 
 //Receives the name of a file "FileName" containing a numerical matrix, and read the matrix data into variable "m"
@@ -129,14 +131,14 @@ void Convert_R_to_Angles(Matrix3b3 R, double& Omega, double& Phi, double& Kappa)
 	}
 
 	else if (A13 == 1) {
-		Phi = pi / 2;
+		Phi = PI / 2;
 		Omega = 0; //arbitrary
 		Kappa = -Omega + atan2(A21, A22);
 
 	}
 
 	else if (A13 == -1) {
-		Phi = -pi / 2;
+		Phi = -PI / 2;
 		Omega = 0;
 		Kappa = Omega + atan2(A21, A22);
 	}
@@ -235,7 +237,7 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 
 
 
-vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_files) {
+vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_files) {
 
 	/*
 	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
@@ -245,11 +247,12 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 
 	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
-	double a, b, c; // Plane parameters
 	vector<Plane> planes;
 	Plane temp_plane;
-	PointCloudXYZIptr cloud_p(new PointCloudXYZI), cloud_f(new PointCloudXYZI), all_planes(new PointCloudXYZI);
+	PointCloudXYZptr cloud_p(new PointCloudXYZ), cloud_f(new PointCloudXYZ), all_planes(new PointCloudXYZ);
 	pcl::PCDWriter writer; //writer object for point clouds
+	Eigen::Vector3f search_axis; // Axis to search for planes PERPENDICULAR to
+	double plane_buffer = 22.5*PI / 180;//Degree offset from search plane to allow
 
 	// Fill in the cloud data
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
@@ -257,16 +260,30 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 	
 
 	// Create the segmentation object
-	pcl::SACSegmentation<pcl::PointXYZI> seg;
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
 	// Optional
+	//Set search axis
+	//search_axis << 0, 1, 0; //y axis
+	//seg.setOptimizeCoefficients(true);
+	//seg.setModelType(pcl::SACMODEL_PLANE);
+	//seg.setMethodType(pcl::SAC_RANSAC);
+	//seg.setMaxIterations(500);
+	//seg.setAxis(search_axis);
+	//seg.setEpsAngle(plane_buffer);
+	//seg.setDistanceThreshold(0.01);
+
 	seg.setOptimizeCoefficients(true);
-	seg.setModelType(pcl::SACMODEL_PLANE);
-	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
-	seg.setDistanceThreshold(0.01);
+	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setDistanceThreshold(0.05); // keep points within 0.005 m of the plane
+	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
+	seg.setAxis(axis);
+	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane
+	
 
 	// Create the filtering object
-	pcl::ExtractIndices<pcl::PointXYZI> extracter;
+	pcl::ExtractIndices<pcl::PointXYZ> extracter;
 
 	int i = 0, nr_points = (int)in_cloud->points.size();
 	// While 30% of the original cloud is still there
@@ -274,6 +291,7 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 	{
 		//Alert user to plane fitting
 		clog << "Fitting plane " << n_planes + 1 << " to dataset.....\n";
+
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud(in_cloud);
 		seg.segment(*inliers, *coefficients);
@@ -307,7 +325,7 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 		{
 			std::stringstream ss;
 			ss << "Cloud_Plane_" << i << ".pcd";
-			writer.write<pcl::PointXYZI>(ss.str(), *cloud_p, false);
+			writer.write<pcl::PointXYZ>(ss.str(), *cloud_p, false);
 		}
 
 		
@@ -329,10 +347,10 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 }
 
 
-PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size)
+PointCloudXYZptr filter_and_downsample(PointCloudXYZptr input_cloud, float leaf_size)
 {
-	PointCloudXYZIptr filtered_cloud(new PointCloudXYZI);
-	pcl::VoxelGrid<pcl::PointXYZI> vox_grid;
+	PointCloudXYZptr filtered_cloud(new PointCloudXYZ);
+	pcl::VoxelGrid<pcl::PointXYZ> vox_grid;
 	pcl::ScopeTime filterscope("Filtering dataset");
 	{
 		vox_grid.setInputCloud(input_cloud);
@@ -343,11 +361,18 @@ PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float lea
 	return filtered_cloud;
 }
 
+bool sort_cloud(Plane plane_1, Plane plane_2)
+{
+	int num_1 = plane_1.points_on_plane->size();
+	int num_2 = plane_2.points_on_plane->size();
+	return (num_1 < num_2);
+}
+
+
 void visualize_planes(vector<Plane> planes)
 {
 	clog << "Visualizing " << planes.size() << " clouds with planes...\n";
 	pcl::visualization::PCLVisualizer viewer("If The Map Fits");
-	pcl::ModelCoefficients::Ptr plane(new pcl::ModelCoefficients);
 
 	double r, g, b;
 	std::stringstream ss;
@@ -355,38 +380,13 @@ void visualize_planes(vector<Plane> planes)
 	//For each plane 
 	for (int i = 0; i < planes.size(); i++)
 	{
-		plane->values.resize(4);
-		plane->values[0] = planes[i].a1;
-		plane->values[1] = planes[i].a2;
-		plane->values[2] = planes[i].a3;
-		plane->values[3] = planes[i].b;
-
-
-		//Add the plane
-		ss.clear();
-		ss << "Cloud_Plane_" << i;
-		viewer.addPlane(*plane, ss.str(), 0);
-
-		//Set the plane visuals
-
-		r = ((double)rand() / (RAND_MAX));
-		g = ((double)rand() / (RAND_MAX));
-		b = ((double)rand() / (RAND_MAX));
-
-		viewer.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_COLOR, r, g, b /*R,G,B*/, ss.str(), 0);
-		viewer.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_OPACITY, 0.6, ss.str(), 0);
-		viewer.setShapeRenderingProperties(pcl::visualization::PCL_VISUALIZER_REPRESENTATION, pcl::visualization::PCL_VISUALIZER_REPRESENTATION_WIREFRAME, ss.str(), 0);
-
-		//Add the point cloud
-		ss.clear();
-		ss << "Cloud_" << i;
-		viewer.addPointCloud<pcl::PointXYZI>(planes[i].points_on_plane, ss.str());
+		viewer.addPointCloud<pcl::PointXYZ>(planes[i].points_on_plane);
 	}
 
 
-	viewer.addCoordinateSystem(0.5, "axis", 0);
-	viewer.setBackgroundColor(0.05, 0.05, 0.05, 0);
-	viewer.setPosition(800, 400);
+	//viewer.addCoordinateSystem(0.5, "axis", 0);
+	//viewer.setBackgroundColor(0.05, 0.05, 0.05, 0);
+	//viewer.setPosition(800, 400);
 
 
 	while (!viewer.wasStopped())
@@ -395,3 +395,17 @@ void visualize_planes(vector<Plane> planes)
 	}
 }
 
+
+void visualize_cloud(PointCloudXYZptr cloud)
+{
+
+	clog << "Visualizing cloud...\n";
+
+	while (!viewer.wasStopped())
+	{
+		viewer.spinOnce();
+	}
+
+
+
+}
