@@ -242,15 +242,23 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	int max_planes:										 This is the maximum number of planes to find in the cloud_filtered
 	
 	*/
-
+	if (max_planes > 0)
+	{
+		clog << " Fitting planes. Will stop at 30% remaining cloud or " << max_planes << " planes.\n\n";
+	}
+	else
+	{
+		clog << " Fitting planes. Will stop at 30% remaining cloud\n\n";
+		max_planes = std::numeric_limits<int>::max();
+	}
 	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
 	vector<Plane> planes;
 	Plane temp_plane;
-	PointCloudXYZptr cloud_p(new PointCloudXYZ), cloud_f(new PointCloudXYZ), all_planes(new PointCloudXYZ);
 	pcl::PCDWriter writer; //writer object for point clouds
 	Eigen::Vector3f search_axis; // Axis to search for planes PERPENDICULAR to
 	double plane_buffer = 22.5*PI / 180;//Degree offset from search plane to allow
+	double size, remaining_p, remaining_pts;
 
 	// Fill in the cloud data
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
@@ -287,8 +295,9 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	// While 30% of the original cloud is still there
 	while (in_cloud->points.size() > 0.3 * nr_points && n_planes < max_planes)
 	{
+		// Initialize clouds
+		PointCloudXYZptr cloud_p(new PointCloudXYZ), cloud_f(new PointCloudXYZ), cloud_temp;
 		//Alert user to plane fitting
-		clog << "Fitting plane " << n_planes + 1 << " to dataset.....\n";
 
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud(in_cloud);
@@ -301,6 +310,13 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 
 		n_planes++;
 
+		remaining_p = (1 - (double)in_cloud->points.size() / (double)nr_points)*100; //remaining percent
+		remaining_pts = nr_points - in_cloud->points.size(); //remaining points
+
+		//cout << "\n all pts: " << nr_points << " remaining percent: " << remaining_p << " Planed pts: " << remaining_pts;
+		fprintf(stdout, "\tSuccessfully fitted %0.3f %% of cloud. %0.1f points and %i planes\r", remaining_p, remaining_pts, n_planes);
+
+
 		//Find plane parameters
 		temp_plane.a1 = coefficients->values[0];
 		temp_plane.a2 = coefficients->values[1];
@@ -312,11 +328,18 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 		extracter.setIndices(inliers);
 		extracter.setNegative(false);
 		extracter.filter(*cloud_p);
-		cerr << "The plane " << n_planes <<" has " << cloud_p->width * cloud_p->height << " data points." << endl;
-		cerr << "\tThe plane has coefficiants: a= " << temp_plane.a1 << " b= " << temp_plane.a2 << " c= " << temp_plane.a3 << " \n";
+		//cerr << "The plane " << n_planes <<" has " << cloud_p->width * cloud_p->height << " data points." << endl;
+		//cerr << "\tThe plane has coefficiants: a= " << temp_plane.a1 << " b= " << temp_plane.a2 << " c= " << temp_plane.a3 << " \n";
 
 		//Save to plane struct
 		temp_plane.points_on_plane = cloud_p;
+
+		//get size
+		size = temp_plane.points_on_plane->size();
+
+		//pusback vector of planes
+		planes.push_back(temp_plane);
+
 
 		//write plane to file
 		if (make_files)
@@ -325,19 +348,14 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 			ss << "Cloud_Plane_" << i << ".pcd";
 			writer.write<pcl::PointXYZ>(ss.str(), *cloud_p, false);
 		}
-
 		
-		//add plane to plane cloud
-		*all_planes += *cloud_p;
-
-		//pusback vector of planes
-		planes.push_back(temp_plane);
 
 		// Create the filtering object
 		extracter.setNegative(true);
 		extracter.filter(*cloud_f);
 		in_cloud.swap(cloud_f);
 		i++;
+
 	}
 
 	return planes;
@@ -363,7 +381,7 @@ bool sort_cloud(Plane plane_1, Plane plane_2)
 {
 	int num_1 = plane_1.points_on_plane->size();
 	int num_2 = plane_2.points_on_plane->size();
-	return (num_1 < num_2);
+	return (num_1 > num_2);
 }
 
 
@@ -433,5 +451,20 @@ void visualize_cloud(PointCloudXYZptr cloud)
 	}
 
 
+
+}
+
+void save_planes(vector<Plane> planes)
+{
+
+	pcl::PCDWriter writer; //writer object for point clouds
+
+	for (int i = 0; i < planes.size(); i++)
+	{
+		std::stringstream ss;
+		ss << "Cloud_Plane_" << i << ".pcd";
+		writer.write<pcl::PointXYZ>(ss.str(), *planes[i].points_on_plane, false);
+
+	}
 
 }

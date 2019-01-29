@@ -1,6 +1,6 @@
 #include "CalibrationFuntions.h"
 
-char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points_resampled.pcd";
+char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
 
 int main() {
 	/*
@@ -29,13 +29,14 @@ int main() {
 	fprintf(stdout, "\n---------------------------------------------------------------------------------------\n");
 
 	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
+	clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
 
 	std::clog << "Opening file: " << FILENAME << " (can take up to 5 minutes)" << endl;
 	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
 	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
 
 
-	clog << "\n-------------------------STEP 2: Mesh Data and Resample-------------------------------------------------------\n";
+	//clog << "\n-------------------------STEP 2: Mesh Data and Resample-------------------------------------------------------\n";
 
 	// Done with cloud compare?
 
@@ -49,15 +50,20 @@ int main() {
 
 	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-
-		//TODO: Incorporate Plane fitting algorithm.
 	
-	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud, 23, true);
+	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud);
 
 
+	//---- DEBUG
+	
 	// Find the largest planes
 	std::sort(planes_in_cloud.begin(), planes_in_cloud.end(), sort_cloud); // sort based off cloud size
+
+
 	planes_in_cloud.resize(6); //truncate to keep largest planes
+	//save planes
+	save_planes(planes_in_cloud);
+
 	
 
 	clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
