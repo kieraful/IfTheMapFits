@@ -5,13 +5,12 @@
 #include <Eigen\Dense> //for Eigen library
 #include <Eigen\Core>
 #include <fstream> //for read/write files
-#include <stdlib.h>// for system("pause") and exit_failure
 #include <vector>
 #include <algorithm>
 #include <stdexcept>
 #include <iomanip> 
 #include <string>
-#include <math.h>  
+#include <cmath>  
 
 
 //PCL includes
@@ -37,6 +36,7 @@
 #include <pcl/surface/mls.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/surface/gp3.h>
+#include <pcl/filters/statistical_outlier_removal.h>
 
 using namespace std;
 using namespace Eigen;
@@ -108,7 +108,7 @@ void  Normalization_Condition(MatrixXd &xy_i1, MatrixXd &xy_i2, MatrixXd& H1, Ma
 
 // ------------------------------------------------------------------------------
 
-void Read_Lidar_points(char * FileName, PointCloudXYZptr cloud);//reads a PCD file to a PCL point cloud
+bool Read_Lidar_points(char * FileName, PointCloudXYZptr cloud);//reads a PCD file to a PCL point cloud
 
 void Find_closest_points(int num_find_points, LidarPt point, MatrixXd search_points);
 
@@ -116,7 +116,7 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 
 vector<Plane> FitPlanes(PointCloudXYZptr cloud_filtered, int max_planes = -1, bool make_files=false);
 
-PointCloudXYZptr filter_and_downsample(PointCloudXYZptr input_cloud, float leaf_size = 0.001f);
+void filter_and_downsample(PointCloudXYZptr &input_cloud, float leaf_size = 0.001f);
 
 void visualize_planes(vector<Plane> planes);
 
@@ -127,6 +127,8 @@ void visualize_cloud(PointCloudXYZptr cloud);
 bool sort_cloud(Plane plane_1, Plane plan_2);
 
 void save_planes(vector<Plane> planes);
+
+void remove_outliers(PointCloudXYZptr &input_cloud, double search_n=50, double std_mul=1.0);
 
 
 #endif

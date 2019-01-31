@@ -1,6 +1,8 @@
 #include "CalibrationFuntions.h"
 
-char * FILENAME = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
+
+char * FILENAME = "..\\..\\..\\Data\\AppleWarehouse\\Orientation1.pcd";
+
 
 int main() {
 	/*
@@ -33,7 +35,11 @@ int main() {
 
 	std::clog << "Opening file: " << FILENAME << " (can take up to 5 minutes)" << endl;
 	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
-	Read_Lidar_points(FILENAME, Novatel_cloud); // Scene 1, Orientation 1
+	if (!Read_Lidar_points(FILENAME, Novatel_cloud)) 
+	{// Scene 1, Orientation 1
+		clog << "\n\nProgram will close\n";
+		return -1;
+	}; 
 
 
 	//clog << "\n-------------------------STEP 2: Mesh Data and Resample-------------------------------------------------------\n";
@@ -42,34 +48,37 @@ int main() {
 
 	clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
-		//TODO: use PCL to filter data
 
-	// Create the filtering object and downsample.
-	PointCloudXYZptr filter_cloud = filter_and_downsample(Novatel_cloud, 0.1f);
+	// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
+	filter_and_downsample(Novatel_cloud, 0.1f);
 
 
 	clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
 	
-	vector<Plane> planes_in_cloud = FitPlanes(filter_cloud);
+	vector<Plane> planes_in_cloud = FitPlanes(Novatel_cloud);
 
 
-	//---- DEBUG
 	
 	// Find the largest planes
 	std::sort(planes_in_cloud.begin(), planes_in_cloud.end(), sort_cloud); // sort based off cloud size
 
 
-	planes_in_cloud.resize(6); //truncate to keep largest planes
+
+	planes_in_cloud.resize(5); //truncate to keep largest planes
 	//save planes
 	save_planes(planes_in_cloud);
-
 	
 
 	clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
 
 		//TODO: downsample all points on each plane. These will be # of EQUATIONS
-		
+	clog << "Downsampling.....\n";
+
+	for (int i = 0; i < planes_in_cloud.size(); i++) {
+		remove_outliers(planes_in_cloud[i].points_on_plane, 100, 1);
+		filter_and_downsample(planes_in_cloud[i].points_on_plane, 1.0f);
+	}
 	
 
 	// --------------------------------------------------------------------------------------------------------------------------------

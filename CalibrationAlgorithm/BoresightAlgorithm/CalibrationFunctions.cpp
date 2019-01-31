@@ -2,17 +2,19 @@
 
 
 
-void Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
+bool Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
 {
 	pcl::PCDReader reader;
 	pcl::ScopeTime readfilescope("File Read");
 	{
 		if (reader.read(filename, *cloud) == -1) {
 			std::cerr << "File could not be opened:\n\t" << filename << endl;
+			return false;
 		}
 
 		std::clog << "File read successful\n";
 	}
+	return true;
 }
 
 //Receives the name of a file "FileName" containing a numerical matrix, and read the matrix data into variable "m"
@@ -362,19 +364,31 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 
 }
 
-
-PointCloudXYZptr filter_and_downsample(PointCloudXYZptr input_cloud, float leaf_size)
+void remove_outliers(PointCloudXYZptr &input_cloud, double search_n, double std_mult)
 {
+
+	// Create the filtering object
+	pcl::StatisticalOutlierRemoval<pcl::PointXYZ> out_remove;
+	out_remove.setInputCloud(input_cloud);
+	out_remove.setMeanK(search_n);
+	out_remove.setStddevMulThresh(std_mult);
+	out_remove.filter(*input_cloud);
+
+}
+
+void filter_and_downsample(PointCloudXYZptr &input_cloud, float leaf_size)
+{
+
+
 	PointCloudXYZptr filtered_cloud(new PointCloudXYZ);
 	pcl::VoxelGrid<pcl::PointXYZ> vox_grid;
 	pcl::ScopeTime filterscope("Filtering dataset");
 	{
 		vox_grid.setInputCloud(input_cloud);
 		vox_grid.setLeafSize(leaf_size, leaf_size, leaf_size);
-		vox_grid.filter(*filtered_cloud);
+		vox_grid.filter(*input_cloud);
 	}
 
-	return filtered_cloud;
 }
 
 bool sort_cloud(Plane plane_1, Plane plane_2)
@@ -383,7 +397,6 @@ bool sort_cloud(Plane plane_1, Plane plane_2)
 	int num_2 = plane_2.points_on_plane->size();
 	return (num_1 > num_2);
 }
-
 
 void visualize_planes(vector<Plane> planes)
 {
@@ -443,10 +456,10 @@ void visualize_cloud(PointCloudXYZptr cloud)
 
 	clog << "Visualizing cloud...\n";
 	pcl::visualization::PCLVisualizer viewer("If The Map Fits");
-	viewer.addPointCloud<pcl::PointXYZ>(cloud);
 
 	while (!viewer.wasStopped())
 	{
+		viewer.addPointCloud<pcl::PointXYZ>(cloud);
 		viewer.spinOnce();
 	}
 
