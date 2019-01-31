@@ -2,17 +2,19 @@
 
 
 
-void Read_Lidar_points(char *filename, pcl::PointCloud<pcl::PointXYZI>::Ptr cloud)
+bool Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
 {
 	pcl::PCDReader reader;
 	pcl::ScopeTime readfilescope("File Read");
 	{
 		if (reader.read(filename, *cloud) == -1) {
 			std::cerr << "File could not be opened:\n\t" << filename << endl;
+			return false;
 		}
 
 		std::clog << "File read successful\n";
 	}
+	return true;
 }
 
 //Receives the name of a file "FileName" containing a numerical matrix, and read the matrix data into variable "m"
@@ -129,14 +131,14 @@ void Convert_R_to_Angles(Matrix3b3 R, double& Omega, double& Phi, double& Kappa)
 	}
 
 	else if (A13 == 1) {
-		Phi = pi / 2;
+		Phi = PI / 2;
 		Omega = 0; //arbitrary
 		Kappa = -Omega + atan2(A21, A22);
 
 	}
 
 	else if (A13 == -1) {
-		Phi = -pi / 2;
+		Phi = -PI / 2;
 		Omega = 0;
 		Kappa = Omega + atan2(A21, A22);
 	}
@@ -235,21 +237,30 @@ double euclidian_dist(double x1, double y1, double z1, double x2, double y2, dou
 
 
 
-vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_files) {
+vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_files) {
 
 	/*
 	pcl::PointCloud<pcl::PointXYZ> cloud_filtered:		 This is the filtered point cloud in which planes of interest lie
 	int max_planes:										 This is the maximum number of planes to find in the cloud_filtered
 	
 	*/
-
+	if (max_planes > 0)
+	{
+		clog << " Fitting planes. Will stop at 30% remaining cloud or " << max_planes << " planes.\n\n";
+	}
+	else
+	{
+		clog << " Fitting planes. Will stop at 30% remaining cloud\n\n";
+		max_planes = std::numeric_limits<int>::max();
+	}
 	//Initializers
 	int n_planes = 0; // Number of planes found in dataset, init to 0
-	double a, b, c; // Plane parameters
 	vector<Plane> planes;
 	Plane temp_plane;
-	PointCloudXYZIptr cloud_p(new PointCloudXYZI), cloud_f(new PointCloudXYZI), all_planes(new PointCloudXYZI);
 	pcl::PCDWriter writer; //writer object for point clouds
+	Eigen::Vector3f search_axis; // Axis to search for planes PERPENDICULAR to
+	double plane_buffer = 22.5*PI / 180;//Degree offset from search plane to allow
+	double size, remaining_p, remaining_pts;
 
 	// Fill in the cloud data
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients());
@@ -257,23 +268,39 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 	
 
 	// Create the segmentation object
-	pcl::SACSegmentation<pcl::PointXYZI> seg;
+	pcl::SACSegmentation<pcl::PointXYZ> seg;
 	// Optional
+	//Set search axis
+	//search_axis << 0, 1, 0; //y axis
+	//seg.setOptimizeCoefficients(true);
+	//seg.setModelType(pcl::SACMODEL_PLANE);
+	//seg.setMethodType(pcl::SAC_RANSAC);
+	//seg.setMaxIterations(500);
+	//seg.setAxis(search_axis);
+	//seg.setEpsAngle(plane_buffer);
+	//seg.setDistanceThreshold(0.01);
+
 	seg.setOptimizeCoefficients(true);
-	seg.setModelType(pcl::SACMODEL_PLANE);
-	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
-	seg.setDistanceThreshold(0.01);
+	seg.setMethodType(pcl::SAC_RANSAC);
+	seg.setDistanceThreshold(0.05); // keep points within 0.005 m of the plane
+	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
+	seg.setAxis(axis);
+	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane
+	
 
 	// Create the filtering object
-	pcl::ExtractIndices<pcl::PointXYZI> extracter;
+	pcl::ExtractIndices<pcl::PointXYZ> extracter;
 
 	int i = 0, nr_points = (int)in_cloud->points.size();
 	// While 30% of the original cloud is still there
 	while (in_cloud->points.size() > 0.3 * nr_points && n_planes < max_planes)
 	{
+		// Initialize clouds
+		PointCloudXYZptr cloud_p(new PointCloudXYZ), cloud_f(new PointCloudXYZ), cloud_temp;
 		//Alert user to plane fitting
-		clog << "Fitting plane " << n_planes + 1 << " to dataset.....\n";
+
 		// Segment the largest planar component from the remaining cloud
 		seg.setInputCloud(in_cloud);
 		seg.segment(*inliers, *coefficients);
@@ -284,6 +311,13 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 		}
 
 		n_planes++;
+
+		remaining_p = (1 - (double)in_cloud->points.size() / (double)nr_points)*100; //remaining percent
+		remaining_pts = nr_points - in_cloud->points.size(); //remaining points
+
+		//cout << "\n all pts: " << nr_points << " remaining percent: " << remaining_p << " Planed pts: " << remaining_pts;
+		fprintf(stdout, "\tSuccessfully fitted %0.3f %% of cloud. %0.1f points and %i planes\r", remaining_p, remaining_pts, n_planes);
+
 
 		//Find plane parameters
 		temp_plane.a1 = coefficients->values[0];
@@ -296,51 +330,72 @@ vector<Plane> FitPlanes(PointCloudXYZIptr in_cloud, int max_planes, bool make_fi
 		extracter.setIndices(inliers);
 		extracter.setNegative(false);
 		extracter.filter(*cloud_p);
-		cerr << "The plane " << n_planes <<" has " << cloud_p->width * cloud_p->height << " data points." << endl;
-		cerr << "\tThe plane has coefficiants: a= " << temp_plane.a1 << " b= " << temp_plane.a2 << " c= " << temp_plane.a3 << " \n";
+		//cerr << "The plane " << n_planes <<" has " << cloud_p->width * cloud_p->height << " data points." << endl;
+		//cerr << "\tThe plane has coefficiants: a= " << temp_plane.a1 << " b= " << temp_plane.a2 << " c= " << temp_plane.a3 << " \n";
 
 		//Save to plane struct
 		temp_plane.points_on_plane = cloud_p;
+
+		//get size
+		size = temp_plane.points_on_plane->size();
+
+		//pusback vector of planes
+		planes.push_back(temp_plane);
+
 
 		//write plane to file
 		if (make_files)
 		{
 			std::stringstream ss;
 			ss << "Cloud_Plane_" << i << ".pcd";
-			writer.write<pcl::PointXYZI>(ss.str(), *cloud_p, false);
+			writer.write<pcl::PointXYZ>(ss.str(), *cloud_p, false);
 		}
-
 		
-		//add plane to plane cloud
-		*all_planes += *cloud_p;
-
-		//pusback vector of planes
-		planes.push_back(temp_plane);
 
 		// Create the filtering object
 		extracter.setNegative(true);
 		extracter.filter(*cloud_f);
 		in_cloud.swap(cloud_f);
 		i++;
+
 	}
 
 	return planes;
 
 }
 
-
-PointCloudXYZIptr filter_and_downsample(PointCloudXYZIptr input_cloud, float leaf_size)
+void remove_outliers(PointCloudXYZptr &input_cloud, double search_n, double std_mult)
 {
-	PointCloudXYZIptr filtered_cloud(new PointCloudXYZI);
-	pcl::VoxelGrid<pcl::PointXYZI> vox_grid;
+
+	// Create the filtering object
+	pcl::StatisticalOutlierRemoval<pcl::PointXYZ> out_remove;
+	out_remove.setInputCloud(input_cloud);
+	out_remove.setMeanK(search_n);
+	out_remove.setStddevMulThresh(std_mult);
+	out_remove.filter(*input_cloud);
+
+}
+
+void filter_and_downsample(PointCloudXYZptr &input_cloud, float leaf_size)
+{
+
+
+	PointCloudXYZptr filtered_cloud(new PointCloudXYZ);
+	pcl::VoxelGrid<pcl::PointXYZ> vox_grid;
 	pcl::ScopeTime filterscope("Filtering dataset");
 	{
 		vox_grid.setInputCloud(input_cloud);
 		vox_grid.setLeafSize(leaf_size, leaf_size, leaf_size);
-		vox_grid.filter(*filtered_cloud);
+		vox_grid.filter(*input_cloud);
 	}
 
-	return filtered_cloud;
+}
+
+bool sort_cloud(Plane plane_1, Plane plane_2)
+{
+	int num_1 = plane_1.points_on_plane->size();
+	int num_2 = plane_2.points_on_plane->size();
+	return (num_1 > num_2);
 }
 
 void visualize_planes(vector<Plane> planes)
@@ -380,7 +435,7 @@ void visualize_planes(vector<Plane> planes)
 		//Add the point cloud
 		ss.clear();
 		ss << "Cloud_" << i;
-		viewer.addPointCloud<pcl::PointXYZI>(planes[i].points_on_plane, ss.str());
+		viewer.addPointCloud<pcl::PointXYZ>(planes[i].points_on_plane, ss.str());
 	}
 
 
@@ -395,3 +450,111 @@ void visualize_planes(vector<Plane> planes)
 	}
 }
 
+
+void visualize_cloud(PointCloudXYZptr cloud)
+{
+
+	clog << "Visualizing cloud...\n";
+	pcl::visualization::PCLVisualizer viewer("If The Map Fits");
+
+	while (!viewer.wasStopped())
+	{
+		viewer.addPointCloud<pcl::PointXYZ>(cloud);
+		viewer.spinOnce();
+	}
+
+
+
+}
+
+void save_planes(vector<Plane> planes)
+{
+
+	pcl::PCDWriter writer; //writer object for point clouds
+
+	for (int i = 0; i < planes.size(); i++)
+	{
+		std::stringstream ss;
+		ss << "Cloud_Plane_" << i << ".pcd";
+		writer.write<pcl::PointXYZ>(ss.str(), *planes[i].points_on_plane, false);
+
+	}
+
+}
+
+MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd boresight_angles)
+{
+	//Vectors and matrices in georeferencing equation
+	//1_2_3:
+	//1: r or R (vector or rotation matrix)
+	//2: subscript
+	//3: superscript
+	MatrixXd r_b_geo; //GNSS measurements -> geo coordinates of IMU center
+	Matrix3b3 R_b_geo; //IMU measurements -> rotation of IMU in geo frame
+	MatrixXd r_lidar_b; //Calibration lever arm
+	Matrix3b3 R_lidar_b; //Calibration angles
+	MatrixXd r_p_lidar; //LiDAR measurements
+	MatrixXd r_p_geo; //ADDED TO OUTPUT -- Geo coords of the lidar point
+	MatrixXd output; //Output: [timestamp, X_lidar, Y_lidar, Z_lidar]
+
+	int num_points = data.rows();
+
+	//Define dimensions
+	r_b_geo.resize(3, 1); 
+	R_b_geo.resize(3, 3);
+	r_lidar_b.resize(3, 1);
+	R_lidar_b.resize(3, 3);
+	r_p_lidar.resize(3, 1);
+	r_p_geo.resize(3, 1);
+	output.resize(num_points, 4);
+
+
+	double timestamp = 0.0;
+	double vert_angle = 0.0;
+	double horiz_angle = 0.0;
+	double range = 0.0;
+
+	//Iterating for each epoch
+	for (int i = 0; i < num_points; i++)
+	{
+		timestamp = data(i, 0);
+
+		//Populate matrices with applicable values
+		r_b_geo << data(i, 1),
+			data(i, 2),
+			data(i, 3);
+
+		Rotation_g2i(data(i, 7), data(i, 8), data(i, 9), R_b_geo); // Inputs: roll, pitch, azimuth, output matrix
+
+		r_lidar_b << boresight_LA(0, 0),
+			boresight_LA(0, 1),
+			boresight_LA(0, 2); // Assumes boresight_LA read in is a 1x3 matrix 
+
+		R_lidar_b << boresight_angles(0, 0),
+			boresight_angles(0, 1),
+			boresight_angles(0, 2); // Assumes boresight_angles is a 1x3 matrix -> read these into Rotation_g2i matrix
+
+		Rotation_g2i(boresight_angles(0, 0), boresight_angles(0, 1), boresight_angles(0, 2), R_lidar_b); // Assumes boresight_angles is a 1x3 matrix
+			
+
+		vert_angle = data(i, 13);
+		horiz_angle = data(i, 14);
+		range = data(i, 15);
+
+		r_p_lidar << range * cos(vert_angle) * cos(horiz_angle),
+			range * cos(vert_angle) * sin(horiz_angle),
+			range*sin(vert_angle);
+
+		r_p_geo = r_b_geo + (R_b_geo * r_lidar_b) + (R_b_geo * R_lidar_b * r_p_lidar);
+
+		// push r_p_geo on to output with timestamp
+		output(i, 0) = timestamp;
+		output(i, 1) = r_p_geo(0, 0);
+		output(i, 2) = r_p_geo(1, 0);
+		output(i, 3) = r_p_geo(2, 0);
+
+	}
+
+	// Output matrix will be: [timestamp, X, Y, Z]
+	return output;
+}
