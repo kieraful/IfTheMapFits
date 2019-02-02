@@ -284,7 +284,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
 	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setDistanceThreshold(0.05); // keep points within 0.005 m of the plane
+	seg.setDistanceThreshold(0.08); // keep points within 0.10 m of the plane
 	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
 	seg.setAxis(axis);
 	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane

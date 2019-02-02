@@ -84,6 +84,12 @@ struct Plane {
 
 };
 
+struct Scene {
+	vector<Plane> planes;
+	double X, Y, Z, omega, phi, kappa;
+
+};
+
 struct LidarPt {
 	double x;
 	double y;
