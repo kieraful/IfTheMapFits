@@ -136,5 +136,6 @@ void save_planes(vector<Plane> planes);
 
 void remove_outliers(PointCloudXYZptr &input_cloud, double search_n=50, double std_mul=1.0);
 
+MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd boresight_angles);
 
 #endif

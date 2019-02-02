@@ -481,3 +481,80 @@ void save_planes(vector<Plane> planes)
 	}
 
 }
+
+MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd boresight_angles)
+{
+	//Vectors and matrices in georeferencing equation
+	//1_2_3:
+	//1: r or R (vector or rotation matrix)
+	//2: subscript
+	//3: superscript
+	MatrixXd r_b_geo; //GNSS measurements -> geo coordinates of IMU center
+	Matrix3b3 R_b_geo; //IMU measurements -> rotation of IMU in geo frame
+	MatrixXd r_lidar_b; //Calibration lever arm
+	Matrix3b3 R_lidar_b; //Calibration angles
+	MatrixXd r_p_lidar; //LiDAR measurements
+	MatrixXd r_p_geo; //ADDED TO OUTPUT -- Geo coords of the lidar point
+	MatrixXd output; //Output: [timestamp, X_lidar, Y_lidar, Z_lidar]
+
+	int num_points = data.rows();
+
+	//Define dimensions
+	r_b_geo.resize(3, 1); 
+	R_b_geo.resize(3, 3);
+	r_lidar_b.resize(3, 1);
+	R_lidar_b.resize(3, 3);
+	r_p_lidar.resize(3, 1);
+	r_p_geo.resize(3, 1);
+	output.resize(num_points, 4);
+
+
+	double timestamp = 0.0;
+	double vert_angle = 0.0;
+	double horiz_angle = 0.0;
+	double range = 0.0;
+
+	//Iterating for each epoch
+	for (int i = 0; i < num_points; i++)
+	{
+		timestamp = data(i, 0);
+
+		//Populate matrices with applicable values
+		r_b_geo << data(i, 1),
+			data(i, 2),
+			data(i, 3);
+
+		Rotation_g2i(data(i, 7), data(i, 8), data(i, 9), R_b_geo); // Inputs: roll, pitch, azimuth, output matrix
+
+		r_lidar_b << boresight_LA(0, 0),
+			boresight_LA(0, 1),
+			boresight_LA(0, 2); // Assumes boresight_LA read in is a 1x3 matrix 
+
+		R_lidar_b << boresight_angles(0, 0),
+			boresight_angles(0, 1),
+			boresight_angles(0, 2); // Assumes boresight_angles is a 1x3 matrix -> read these into Rotation_g2i matrix
+
+		Rotation_g2i(boresight_angles(0, 0), boresight_angles(0, 1), boresight_angles(0, 2), R_lidar_b); // Assumes boresight_angles is a 1x3 matrix
+			
+
+		vert_angle = data(i, 13);
+		horiz_angle = data(i, 14);
+		range = data(i, 15);
+
+		r_p_lidar << range * cos(vert_angle) * cos(horiz_angle),
+			range * cos(vert_angle) * sin(horiz_angle),
+			range*sin(vert_angle);
+
+		r_p_geo = r_b_geo + (R_b_geo * r_lidar_b) + (R_b_geo * R_lidar_b * r_p_lidar);
+
+		// push r_p_geo on to output with timestamp
+		output(i, 0) = timestamp;
+		output(i, 1) = r_p_geo(0, 0);
+		output(i, 2) = r_p_geo(1, 0);
+		output(i, 3) = r_p_geo(2, 0);
+
+	}
+
+	// Output matrix will be: [timestamp, X, Y, Z]
+	return output;
+}

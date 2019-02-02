@@ -1,8 +1,6 @@
 #include "CalibrationFuntions.h"
 
 
-
-
 int main() {
 	/*
 	--------------------------- IF THE MAP FITS BORESIGHT CALIBRATION - MAIN  ------------------------------------------------------
@@ -66,7 +64,6 @@ int main() {
 
 		clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-
 		planes = FitPlanes(Novatel_cloud);
 
 
@@ -92,12 +89,14 @@ int main() {
 		}
 
 
-		// --------------------------------------------------------------------------------------------------------------------------------
 
 
+		clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
 
-		// TODO : GET GNSS/INS integrated data (Integrated from Inertial Explorer)
+		//Read in IE output and save to matrix
+		MatrixXd GNSS_INS_data;
+		Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
 
 		//GNSS
 		temp_scene.X = 0;
@@ -116,6 +115,18 @@ int main() {
 		
 		scenes.push_back(temp_scene);
 	}
+
+
+	// TODO: MATCH PLANES
+
+	// TODO: BUNDLE ADJUSTMENT
+
+	// GEOREFERENCE
+
+		// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
+
+
+
 
 	return 0;
 }
