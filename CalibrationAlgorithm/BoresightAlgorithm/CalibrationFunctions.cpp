@@ -541,8 +541,8 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 		horiz_angle = data(i, 14);
 		range = data(i, 15);
 
-		r_p_lidar << range * cos(vert_angle) * cos(horiz_angle),
-			range * cos(vert_angle) * sin(horiz_angle),
+		r_p_lidar << range * cos(vert_angle) * sin(horiz_angle),
+			range * cos(vert_angle) * cos(horiz_angle),
 			range*sin(vert_angle);
 
 		r_p_geo = r_b_geo + (R_b_geo * r_lidar_b) + (R_b_geo * R_lidar_b * r_p_lidar);
