@@ -57,7 +57,11 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloudXYZ;
 
 #define MaxMatSize 10000000
 #define PI 3.14159265358979323846 
-#define RAD2DEG = 180.0 / pi;
+//#define RAD2DEG = (180.0 / pi)
+
+
+const double RAD2ARC = (3600 * 180 / PI);
+const double RAD2DEG = (180 / PI);
 
 struct CameraParam {
 	double PS; //pixel size
@@ -87,6 +91,7 @@ struct Plane {
 struct Scene {
 	vector<Plane> planes;
 	double X, Y, Z, omega, phi, kappa;
+	vector<Vector3d> mapping_vec;
 
 };
 
@@ -137,5 +142,7 @@ void save_planes(vector<Plane> planes);
 void remove_outliers(PointCloudXYZptr &input_cloud, double search_n=50, double std_mul=1.0);
 
 MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd boresight_angles);
+
+void match_scenes(vector<Scene> scenes);
 
 #endif

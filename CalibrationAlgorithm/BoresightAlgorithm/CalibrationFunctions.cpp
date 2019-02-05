@@ -558,3 +558,87 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 	// Output matrix will be: [timestamp, X, Y, Z]
 	return output;
 }
+
+void match_scenes(vector<Scene> scenes)
+{
+
+	// For each scene, match planes. First scene is taken as base. 
+	Scene base_scene; 
+	double del_omega, del_phi, del_kappa; // Defined as scene(i) - base
+	Matrix3b3 R_del;
+	Vector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
+	vector<int> candidates;
+	double thresh_orientation = 0.01;
+	double best_dist;
+	int best_plane;
+
+
+	for (int i = 1; i < scenes.size(); i++) // Target scene
+	{
+		for (int j = 0; j < i; j++) // For each base scene
+		{ 
+			base_scene = scenes[j];
+			// Make rotation matrix from scene i to base
+			del_omega = scenes[i].omega - base_scene.omega;
+			del_phi = scenes[i].phi - base_scene.phi;
+			del_kappa = scenes[i].kappa - base_scene.kappa;
+			Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
+
+			for (int k = 0; k < scenes[i].planes.size(); k++) // each plane in target scene
+			{
+				// Target plane to matrix
+				target_plane_vec << scenes[i].planes[k].a1, scenes[i].planes[k].a2, scenes[i].planes[k].a3;
+
+				// Rotate plane to match base
+				target_rot_vec = target_plane_vec.transpose() * R_del;
+
+				// For each plane in scene, find closest matching planes in base (Orientation)
+				// If multiple within threshold, save all and continue to distance
+
+				for (int l = 0; l < base_scene.planes.size(); l++) //each plane in base scene
+				{
+					// Base plane to matrix
+					base_plane_vec << base_scene.planes[l].a1, base_scene.planes[l].a2, base_scene.planes[l].a3;
+					//dot product
+					if (base_plane_vec.dot(target_plane_vec) < thresh_orientation)
+					{
+						candidates.push_back(l); // place base plane index in vector
+					}
+
+				}
+
+				//Check if any planes got through orientation matching
+				if (candidates.size() < 1)
+				{
+					cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
+					break;
+				}
+				
+				// reset distance threshold
+				best_dist = 100;
+				best_plane = -1;
+				// For each candidate plane, find closest matching plane in base (Euclidian distance)
+				for (int m = 0; m < candidates.size(); m++)
+				{
+					if (abs(scenes[i].planes[k].b - scenes[j].planes[m].b))
+					{
+						//This is the best plane so far
+						best_plane = candidates[m]; // save the base plane index
+					}
+
+				}
+
+				// Add the best plane to the mapping matrix
+				mapping_temp << k, j, best_plane;
+				scenes[i].mapping_vec.push_back(mapping_temp);
+			}
+
+		}
+
+
+
+
+	}
+
+
+}
