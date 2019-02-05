@@ -566,7 +566,7 @@ void match_scenes(vector<Scene> scenes)
 	Scene base_scene; 
 	double del_omega, del_phi, del_kappa; // Defined as scene(i) - base
 	Matrix3b3 R_del;
-	Vector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
+	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
 	vector<int> candidates;
 	double thresh_orientation = 0.01;
 	double best_dist;
@@ -590,7 +590,7 @@ void match_scenes(vector<Scene> scenes)
 				target_plane_vec << scenes[i].planes[k].a1, scenes[i].planes[k].a2, scenes[i].planes[k].a3;
 
 				// Rotate plane to match base
-				target_rot_vec = target_plane_vec.transpose() * R_del;
+				target_rot_vec = target_plane_vec * R_del;
 
 				// For each plane in scene, find closest matching planes in base (Orientation)
 				// If multiple within threshold, save all and continue to distance

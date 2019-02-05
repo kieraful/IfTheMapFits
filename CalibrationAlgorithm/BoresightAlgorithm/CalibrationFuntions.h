@@ -91,7 +91,7 @@ struct Plane {
 struct Scene {
 	vector<Plane> planes;
 	double X, Y, Z, omega, phi, kappa;
-	vector<Vector3d> mapping_vec;
+	vector<RowVector3d> mapping_vec;
 
 };
 
