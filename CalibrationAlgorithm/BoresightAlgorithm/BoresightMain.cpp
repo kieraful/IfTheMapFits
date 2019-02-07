@@ -29,8 +29,12 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	char * file1 = "..\\..\\..\\Data\\AppleWarehouse\\Orientation1.pcd";
+	char * file1 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
+	char * file2 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
+	char * file3 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
 	pcd_files.push_back(file1); //vector of input files
+	pcd_files.push_back(file2);
+	pcd_files.push_back(file3);
 
 	vector<Plane> planes;
 	vector<Scene> scenes;
@@ -51,10 +55,6 @@ int main() {
 		};
 
 
-		//clog << "\n-------------------------STEP 2: Mesh Data and Resample-------------------------------------------------------\n";
-
-		// Done with cloud compare?
-
 		clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
 
@@ -64,18 +64,15 @@ int main() {
 
 		clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud);
+		planes = FitPlanes(Novatel_cloud, 20);
 
 
 
 		// Find the largest planes
 		std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
 
-
-
 		planes.resize(5); //truncate to keep largest planes
-		//save planes
-		save_planes(planes);
+
 
 
 		clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
@@ -88,7 +85,8 @@ int main() {
 			filter_and_downsample(planes[i].points_on_plane, 1.0f);
 		}
 
-
+		//save planes
+		//save_planes(planes);
 
 
 		clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
@@ -96,7 +94,7 @@ int main() {
 
 		//Read in IE output and save to matrix
 		MatrixXd GNSS_INS_data;
-		Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
+		//Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
 
 		//GNSS
 		temp_scene.X = 0;
@@ -108,7 +106,7 @@ int main() {
 		temp_scene.kappa = 0;
 		
 		// VISUALIZE
-		visualize_planes(planes);
+		//visualize_planes(planes);
 
 		//Add to scene
 		temp_scene.planes = planes;
@@ -118,6 +116,7 @@ int main() {
 
 
 	// TODO: MATCH PLANES
+	match_scenes(scenes);
 
 	// TODO: BUNDLE ADJUSTMENT
 
@@ -126,7 +125,7 @@ int main() {
 
 		// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
 
-
+	clog << "\n\n FINISHED CALIBRATION\n\n";
 
 
 	return 0;

@@ -244,13 +244,16 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	int max_planes:										 This is the maximum number of planes to find in the cloud_filtered
 	
 	*/
+
+	double percent_cloud = 50;
+
 	if (max_planes > 0)
 	{
-		clog << " Fitting planes. Will stop at 30% remaining cloud or " << max_planes << " planes.\n\n";
+		clog << " Fitting planes. Will stop at " << percent_cloud << "% remaining cloud or " << max_planes << " planes.\n\n";
 	}
 	else
 	{
-		clog << " Fitting planes. Will stop at 30% remaining cloud\n\n";
+		clog << " Fitting planes. Will stop at " << percent_cloud << "% remaining cloud\n\n";
 		max_planes = std::numeric_limits<int>::max();
 	}
 	//Initializers
@@ -284,7 +287,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
 	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setDistanceThreshold(0.08); // keep points within 0.10 m of the plane
+	seg.setDistanceThreshold(0.15); // keep points within 0.10 m of the plane
 	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
 	seg.setAxis(axis);
 	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane
@@ -295,7 +298,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 
 	int i = 0, nr_points = (int)in_cloud->points.size();
 	// While 30% of the original cloud is still there
-	while (in_cloud->points.size() > 0.3 * nr_points && n_planes < max_planes)
+	while (in_cloud->points.size() > (percent_cloud/100) * nr_points && n_planes < max_planes)
 	{
 		// Initialize clouds
 		PointCloudXYZptr cloud_p(new PointCloudXYZ), cloud_f(new PointCloudXYZ), cloud_temp;
@@ -568,8 +571,8 @@ void match_scenes(vector<Scene> scenes)
 	Matrix3b3 R_del;
 	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
 	vector<int> candidates;
-	double thresh_orientation = 0.01;
-	double best_dist;
+	double thresh_orientation = 0.001;
+	double best_dist, dot_prod, dist_temp;
 	int best_plane;
 
 
@@ -594,13 +597,25 @@ void match_scenes(vector<Scene> scenes)
 
 				// For each plane in scene, find closest matching planes in base (Orientation)
 				// If multiple within threshold, save all and continue to distance
-
+				candidates.clear(); // clear the candidates vector
 				for (int l = 0; l < base_scene.planes.size(); l++) //each plane in base scene
 				{
 					// Base plane to matrix
 					base_plane_vec << base_scene.planes[l].a1, base_scene.planes[l].a2, base_scene.planes[l].a3;
 					//dot product
-					if (base_plane_vec.dot(target_plane_vec) < thresh_orientation)
+
+					// ------ Debug --------------
+
+					//cout << "\n\n \t\tDEBUGGING\t";
+					//fprintf(stdout, "\nTarget Plane:\t%f\t%f\t%f\n", target_plane_vec(0), target_plane_vec(1), target_plane_vec(2));
+					//cout << "\nRotation Matrix Rdel:\n" << R_del;
+					//fprintf(stdout, "\nBase Plane:\t%f\t%f\t%f\n", base_plane_vec(0), base_plane_vec(1), base_plane_vec(2));
+					//cout << "The DOT product: " << base_plane_vec.dot(target_plane_vec) << endl;
+					// ---------------------------
+
+
+					dot_prod = base_plane_vec.dot(target_plane_vec);
+					if (1 - dot_prod < thresh_orientation)
 					{
 						candidates.push_back(l); // place base plane index in vector
 					}
@@ -615,20 +630,29 @@ void match_scenes(vector<Scene> scenes)
 				}
 				
 				// reset distance threshold
-				best_dist = 100;
+				best_dist = 5; // Planes should definitely not be more than 5 meters away from eachother
 				best_plane = -1;
 				// For each candidate plane, find closest matching plane in base (Euclidian distance)
 				for (int m = 0; m < candidates.size(); m++)
 				{
-					if (abs(scenes[i].planes[k].b - scenes[j].planes[m].b))
+					dist_temp = abs(scenes[i].planes[k].b - scenes[j].planes[candidates[m]].b);
+					if (dist_temp < best_dist)
 					{
 						//This is the best plane so far
+						best_dist = dist_temp;
 						best_plane = candidates[m]; // save the base plane index
 					}
 
 				}
 
+				if (best_plane == -1)
+				{
+					cerr << "\nCould not find a plane matching distance thresholds!/n";
+					break;
+				}
+
 				// Add the best plane to the mapping matrix
+				clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
 				mapping_temp << k, j, best_plane;
 				scenes[i].mapping_vec.push_back(mapping_temp);
 			}
