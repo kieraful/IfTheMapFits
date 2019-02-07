@@ -29,15 +29,19 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	char * file1 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
-	char * file3 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
+	char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
 	pcd_files.push_back(file3);
 
 	vector<Plane> planes;
 	vector<Scene> scenes;
+
+	//Read in IE output and save to matrix
+	MatrixXd GNSS_INS_data;
+	Read_Mat("IE_Output_RoofBaseMP_noheader.txt", GNSS_INS_data);
 
 	for (int i = 0; i < pcd_files.size(); i++)
 	{
@@ -92,10 +96,6 @@ int main() {
 		clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
 
-		//Read in IE output and save to matrix
-		MatrixXd GNSS_INS_data;
-		//Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
-
 		//GNSS
 		temp_scene.X = 0;
 		temp_scene.Y = 0;
@@ -124,6 +124,7 @@ int main() {
 	// GEOREFERENCE
 
 		// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
+		// TODO: Call georeferencing function
 
 	clog << "\n\n FINISHED CALIBRATION\n\n";
 
