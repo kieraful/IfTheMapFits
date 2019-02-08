@@ -91,7 +91,14 @@ struct Plane {
 struct Scene {
 	vector<Plane> planes;
 	double X, Y, Z, omega, phi, kappa;
+	
+
+};
+
+struct UniquePlanes {
 	vector<RowVector3d> mapping_vec;
+	vector<double> frequency;
+	vector<Plane> unique_planes;
 
 };
 
@@ -137,12 +144,16 @@ void visualize_cloud(PointCloudXYZptr cloud);
 
 bool sort_cloud(Plane plane_1, Plane plan_2);
 
+bool sort_planes(Vector3d vec_1, Vector3d vec_2);
+
 void save_planes(vector<Plane> planes);
 
 void remove_outliers(PointCloudXYZptr &input_cloud, double search_n=50, double std_mul=1.0);
 
 MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd boresight_angles);
 
-void match_scenes(vector<Scene> scenes);
+UniquePlanes match_scenes(vector<Scene> scenes);
+
+void remove_unfrequent(UniquePlanes &unique);
 
 #endif

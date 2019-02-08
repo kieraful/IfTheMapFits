@@ -401,6 +401,13 @@ bool sort_cloud(Plane plane_1, Plane plane_2)
 	return (num_1 > num_2);
 }
 
+bool sort_planes(Vector3d vec_1, Vector3d vec_2)
+{
+	int num_1 = vec_1[0];
+	int num_2 = vec_2[0];
+	return (num_1 > num_2);
+}
+
 void visualize_planes(vector<Plane> planes)
 {
 	clog << "Visualizing " << planes.size() << " clouds with planes...\n";
@@ -562,11 +569,12 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 	return output;
 }
 
-void match_scenes(vector<Scene> scenes)
+UniquePlanes match_scenes(vector<Scene> scenes)
 {
 
 	// For each scene, match planes. First scene is taken as base. 
-	Scene base_scene; 
+	Scene base_scene;
+	UniquePlanes unique;
 	double del_omega, del_phi, del_kappa; // Defined as scene(i) - base
 	Matrix3b3 R_del;
 	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
@@ -575,6 +583,17 @@ void match_scenes(vector<Scene> scenes)
 	double best_dist, dot_prod, dist_temp;
 	int best_plane;
 
+	//Add base scene to unique planes, as there is nothing to match yet
+	for (int i = 0; i < scenes[0].planes.size(); i++) {
+
+		unique.unique_planes.push_back(scenes[0].planes[i]);
+		mapping_temp << i << 0 << i;
+
+		unique.mapping_vec.pushback(mapping_temp);
+
+		unique.frequency.push_back(1);
+
+	}
 
 	for (int i = 1; i < scenes.size(); i++) // Target scene
 	{
@@ -598,10 +617,10 @@ void match_scenes(vector<Scene> scenes)
 				// For each plane in scene, find closest matching planes in base (Orientation)
 				// If multiple within threshold, save all and continue to distance
 				candidates.clear(); // clear the candidates vector
-				for (int l = 0; l < base_scene.planes.size(); l++) //each plane in base scene
+				for (int l = 0; l < unique.unique_planes.size(); l++) //each plane in base scene
 				{
 					// Base plane to matrix
-					base_plane_vec << base_scene.planes[l].a1, base_scene.planes[l].a2, base_scene.planes[l].a3;
+					base_plane_vec << unique.unique_planes[l].a1, unique.unique_planes[l].a2, unique.unique_planes.a3;
 					//dot product
 
 					// ------ Debug --------------
@@ -630,7 +649,7 @@ void match_scenes(vector<Scene> scenes)
 				}
 				
 				// reset distance threshold
-				best_dist = 5; // Planes should definitely not be more than 5 meters away from eachother
+				best_dist = 2; // Planes should definitely not be more than 5 meters away from eachother
 				best_plane = -1;
 				// For each candidate plane, find closest matching plane in base (Euclidian distance)
 				for (int m = 0; m < candidates.size(); m++)
@@ -645,16 +664,24 @@ void match_scenes(vector<Scene> scenes)
 
 				}
 
-				if (best_plane == -1)
+				if (best_plane != -1)
 				{
-					cerr << "\nCould not find a plane matching distance thresholds!/n";
-					break;
+					// Unique plane match. This plane already exists. Add frequency
+					// Add the best plane to the mapping matrix
+					clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
+					mapping_temp << best_plane, i, k; // will be referencing the next unique plane
+					unique.mapping_vec.push_back(mapping_temp);
+					//update_frequency
+					unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
+					
 				}
-
-				// Add the best plane to the mapping matrix
-				clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
-				mapping_temp << k, j, best_plane;
-				scenes[i].mapping_vec.push_back(mapping_temp);
+				else
+				{
+					// This plane is new. Add it to the unique planes. 
+					mapping_temp << unique.mapping_vec.size() + 1, i, k; // will be referencing the next unique plane
+					unique.mapping_vec.push_back(mapping_temp);
+					unique.frequency.push_back(1);
+				}
 			}
 
 		}
@@ -663,6 +690,13 @@ void match_scenes(vector<Scene> scenes)
 
 
 	}
+
+
+}
+
+void remove_unfrequent(UniquePlanes & unique)
+{
+
 
 
 }

@@ -116,7 +116,13 @@ int main() {
 
 
 	// TODO: MATCH PLANES
-	match_scenes(scenes);
+	UniquePlanes unique_planes = match_scenes(scenes);
+
+	//Sort unique planes
+	std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
+
+	//Remove less frequent planes. 
+
 
 	// TODO: BUNDLE ADJUSTMENT
 
