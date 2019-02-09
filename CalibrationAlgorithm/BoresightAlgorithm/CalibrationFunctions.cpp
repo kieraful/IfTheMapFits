@@ -571,7 +571,7 @@ void match_scenes(vector<Scene> scenes)
 	Matrix3b3 R_del;
 	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
 	vector<int> candidates;
-	double thresh_orientation = 0.001;
+	double thresh_orientation = 0.1;
 	double best_dist, dot_prod, dist_temp;
 	int best_plane;
 

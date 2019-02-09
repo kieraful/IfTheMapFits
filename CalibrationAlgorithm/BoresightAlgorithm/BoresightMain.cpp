@@ -29,9 +29,9 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	char * file1 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
-	char * file3 = "..\\..\\..\\Data\\FirstDataset\\All_points.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3.pcd";
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
 	pcd_files.push_back(file3);
@@ -41,12 +41,15 @@ int main() {
 
 	for (int i = 0; i < pcd_files.size(); i++)
 	{
+		clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
+
 		Scene temp_scene;
 
 		// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
-		clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
+		//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
 
-		std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
+		//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
+		clog << "Loading file....";
 		PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
 		if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
 		{// Scene 1, Orientation 1
@@ -55,16 +58,16 @@ int main() {
 		};
 
 
-		clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
+		//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
 
 		// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
 		filter_and_downsample(Novatel_cloud, 0.1f);
 
 
-		clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
+		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud, 20);
+		planes = FitPlanes(Novatel_cloud);
 
 
 
@@ -75,10 +78,10 @@ int main() {
 
 
 
-		clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
+		//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
 
 		//TODO: downsample all points on each plane. These will be # of EQUATIONS
-		clog << "Downsampling.....\n";
+		clog << "\nDownsampling.....\n\n";
 
 		for (int i = 0; i < planes.size(); i++) {
 			remove_outliers(planes[i].points_on_plane, 100, 1);
@@ -86,15 +89,16 @@ int main() {
 		}
 
 		//save planes
-		//save_planes(planes);
+		save_planes(planes);
 
 
-		clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
+		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
 
 		//Read in IE output and save to matrix
 		MatrixXd GNSS_INS_data;
 		//Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
+		//Read_Mat("Orientation.txt", GNSS_INS_data);
 
 		//GNSS
 		temp_scene.X = 0;
@@ -114,6 +118,7 @@ int main() {
 		scenes.push_back(temp_scene);
 	}
 
+	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
 
 	// TODO: MATCH PLANES
 	match_scenes(scenes);
