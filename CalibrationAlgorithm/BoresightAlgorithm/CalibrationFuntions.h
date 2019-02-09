@@ -97,7 +97,7 @@ struct Scene {
 
 struct UniquePlanes {
 	vector<RowVector3d> mapping_vec;
-	vector<double> frequency;
+	vector<int> frequency;
 	vector<Plane> unique_planes;
 
 };
@@ -154,8 +154,9 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 
 UniquePlanes match_scenes(vector<Scene> scenes);
 
-void remove_unfrequent(UniquePlanes &unique);
+void remove_unfrequent(UniquePlanes &unique, int threshold=3);
 
 void print_vector(vector<RowVector3d> print_vector);
+void print_vector(vector<int> print_vector);
 
 #endif

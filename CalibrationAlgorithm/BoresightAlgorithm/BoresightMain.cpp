@@ -29,13 +29,13 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
 
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
-	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
+	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
@@ -76,7 +76,7 @@ int main() {
 
 		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud, 20);
+		planes = FitPlanes(Novatel_cloud);
 
 
 
@@ -128,14 +128,26 @@ int main() {
 	}
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
-
+	clog << "Matching planes....";
 	// TODO: MATCH PLANES
 	UniquePlanes unique_planes = match_scenes(scenes);
-
+	clog << "Done.\nRemoving unfrequent planes....";
 	//Sort unique planes
-	std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
+	//std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
 
 	//Remove less frequent planes. 
+	remove_unfrequent(unique_planes);
+	clog << "Done.\n";
+
+
+	// ------------DEBUG
+	clog << "\nNumber of planes:\t" << unique_planes.unique_planes.size() << endl;
+	clog << "\Frequency vector:\n";
+	print_vector(unique_planes.frequency);
+	clog << "\nMapping vector:\n";
+	print_vector(unique_planes.mapping_vec);
+
+	// -----------------
 
 
 	// TODO: BUNDLE ADJUSTMENT

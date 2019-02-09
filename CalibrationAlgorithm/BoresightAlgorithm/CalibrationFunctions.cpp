@@ -644,11 +644,10 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				}
 
 				//Check if any planes got through orientation matching
-				if (candidates.size() < 1)
-				{
-					cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
-					break;
-				}
+				//if (candidates.size() < 1)
+				//{
+				//	cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
+				//}
 				
 				// reset distance threshold
 				best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
@@ -670,7 +669,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				{
 					// Unique plane match. This plane already exists. Add frequency
 					// Add the best plane to the mapping matrix
-					clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
+					//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
 					mapping_temp << best_plane, i, k;
 					unique.mapping_vec.push_back(mapping_temp);
 					//update_frequency
@@ -697,9 +696,24 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 	return unique;
 }
 
-void remove_unfrequent(UniquePlanes & unique)
+void remove_unfrequent(UniquePlanes & unique, int threshold)
 {
+	// Removes the less frequent planes from the mapping vector
 
+	for (int i = 0; i < unique.frequency.size(); i++)
+	{
+		if (unique.frequency[i] < threshold)
+		{
+			//This plane has too few referencing scenes. Remove from mapping vector
+			for (int j = 0; j < unique.mapping_vec.size(); j++)
+			{
+				if ((int)unique.mapping_vec[j](0) == i)
+				{
+					unique.mapping_vec.erase(unique.mapping_vec.begin() + j);
+				}
+			}
+		}
+	}
 
 
 }
@@ -714,3 +728,15 @@ void print_vector(vector<RowVector3d> print_vector)
 	}
 
 }
+
+void print_vector(vector<int> print_vector)
+{
+	for (int i = 0; i < print_vector.size(); i++)
+	{
+
+		cout << "\t" << print_vector[i] << endl;
+
+	}
+
+}
+
