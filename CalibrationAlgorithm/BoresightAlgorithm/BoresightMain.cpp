@@ -61,7 +61,7 @@ int main() {
 		clog << "Loading file....";
 		PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
 		if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
-		{// Scene 1, Orientation 1
+		{
 			clog << "\n\nProgram will close\n";
 			return -1;
 		};
@@ -110,13 +110,13 @@ int main() {
 		//Read_Mat("Orientation.txt", GNSS_INS_data);
 
 		//GNSS
-		temp_scene.X = 0;
-		temp_scene.Y = 0;
-		temp_scene.Z = 0;
+		temp_scene.scene_orientation.X = 0;
+		temp_scene.scene_orientation.Y = 0;
+		temp_scene.scene_orientation.Z = 0;
 		//INS
-		temp_scene.omega = 0;
-		temp_scene.phi = 0;
-		temp_scene.kappa = 0;
+		temp_scene.scene_orientation.omega = 0;
+		temp_scene.scene_orientation.phi = 0;
+		temp_scene.scene_orientation.kappa = 0;
 		
 		// VISUALIZE
 		//visualize_planes(planes);
@@ -136,8 +136,9 @@ int main() {
 	//std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
 
 	//Remove less frequent planes. 
+	int num_planes = unique_planes.unique_planes.size();
 	remove_unfrequent(unique_planes);
-	clog << "Done.\n";
+	clog << "Done. Removed " << num_planes - unique_planes.unique_planes.size() << " infrequent planes.\n";
 
 
 	// ------------DEBUG

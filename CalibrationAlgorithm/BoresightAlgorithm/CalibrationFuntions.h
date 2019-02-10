@@ -63,24 +63,6 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloudXYZ;
 const double RAD2ARC = (3600 * 180 / PI);
 const double RAD2DEG = (180 / PI);
 
-struct CameraParam {
-	double PS; //pixel size
-	double f_l; //focal length
-	double xpp; //principal point in x
-	double ypp; //principal point in y
-	double K1; //Distortion parameter
-	double K2;//Distortion parameter
-	double K3;//Distortion parameter
-	double P1;//Distortion parameter
-	double P2;//Distortion parameter
-	double S1;//Distortion parameter
-	double S2;//Distortion parameter
-	double Cn;
-	double Rn;
-	double sigma_obs; //observation standard deviation
-
-};
-
 struct Plane {
 
 	double a1, a2, a3, b; // plane parameters
@@ -88,10 +70,16 @@ struct Plane {
 
 };
 
+
+
+struct Orientation {
+
+	double X, Y, Z, omega, phi, kappa;
+};
+
 struct Scene {
 	vector<Plane> planes;
-	double X, Y, Z, omega, phi, kappa;
-	
+	Orientation scene_orientation;
 
 };
 
@@ -99,6 +87,8 @@ struct UniquePlanes {
 	vector<RowVector3d> mapping_vec;
 	vector<int> frequency;
 	vector<Plane> unique_planes;
+	vector<Orientation> reference_orientations;
+
 
 };
 
@@ -158,5 +148,9 @@ void remove_unfrequent(UniquePlanes &unique, int threshold=3);
 
 void print_vector(vector<RowVector3d> print_vector);
 void print_vector(vector<int> print_vector);
+
+double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
+
+
 
 #endif

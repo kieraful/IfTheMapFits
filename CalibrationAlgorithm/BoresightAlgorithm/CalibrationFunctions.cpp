@@ -583,6 +583,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 	double best_dist, dot_prod, dist_temp;
 	int best_plane;
 	Plane temp_plane;
+	Orientation temp_orientation;
 
 	//Add base scene to unique planes, as there is nothing to match yet
 	for (int i = 0; i < scenes[0].planes.size(); i++) {
@@ -591,20 +592,19 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 		mapping_temp << i , 0 , i;
 
 		unique.mapping_vec.push_back(mapping_temp);
-
+		unique.reference_orientations.push_back(scenes[0].scene_orientation);
 		unique.frequency.push_back(1);
 
 	}
 
 	for (int i = 1; i < scenes.size(); i++) // Target scene
 	{
-		for (int j = 0; j < i; j++) // For each base scene
+		for (int j = 0; j < unique.unique_planes.size(); j++) // For each base scene
 		{ 
-			base_scene = scenes[j];
 			// Make rotation matrix from scene i to base
-			del_omega = scenes[i].omega - base_scene.omega;
-			del_phi = scenes[i].phi - base_scene.phi;
-			del_kappa = scenes[i].kappa - base_scene.kappa;
+			del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[j].omega;
+			del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[j].phi;
+			del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[j].kappa;
 			Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
 
 			for (int k = 0; k < scenes[i].planes.size(); k++) // each plane in target scene
@@ -653,16 +653,29 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
 				best_plane = -1;
 				// For each candidate plane, find closest matching plane in base (Euclidian distance)
-				for (int m = 0; m < candidates.size(); m++)
+				if (candidates.size() > 1)
 				{
-					dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
-					if (dist_temp < best_dist)
+					for (int m = 0; m < candidates.size(); m++)
 					{
-						//This is the best plane so far
-						best_dist = dist_temp;
-						best_plane = candidates[m]; // save the base plane index
-					}
+						//dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
+						//if (dist_temp < best_dist)
+						//{
+						//	//This is the best plane so far
+						//	best_dist = dist_temp;
+						//	best_plane = candidates[m]; // save the base plane index
+						//}
+						dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
+						if (dist_temp < best_dist)
+						{
+							best_plane = candidates[m]; // save the base plane index
 
+						}
+					}
+				}
+
+				else if(candidates.size() == 1)
+				{
+					best_plane = candidates[0];
 				}
 
 				if (best_plane != -1)
@@ -683,6 +696,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 					mapping_temp << unique.unique_planes.size() - 1, i, k; // will be referencing the next unique plane
 					unique.mapping_vec.push_back(mapping_temp);
 					unique.frequency.push_back(1);
+					unique.reference_orientations.push_back(scenes[i].scene_orientation);
 				}
 			}
 
@@ -740,3 +754,61 @@ void print_vector(vector<int> print_vector)
 
 }
 
+
+double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
+{
+	// Checks the distance between two planes to see if they are in fact the same plane
+	// Done by finding circle intersection, and if it satisfies the base plane equation. 
+
+	bool result = false;
+	double d_base, d_target; 
+	double x1, x2, y1, y2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
+
+
+	d_base = plane_base.b; // Distance from origin in base scene
+	d_target = plane_target.b; // Distance from origin in target scene
+
+	//find intersection points
+	x1 = orient_base.X;
+	y1 = orient_base.Y;
+	x2 = orient_target.X;
+	y2 = orient_target.X;
+
+	r1 = 5;
+	r2 = 8;
+
+	d = sqrt(pow((x1 - x2),2) + pow(y1 - y2,2));
+
+	if (d > (r1 + r2))
+	{
+		//Does not intersect
+
+	}
+	else if (d + min(r1, r2) < max(r1, r2))
+	{
+
+		// One is in other
+	}
+
+	else
+	{
+		a = (pow(r1,2) - pow(r2, 2) + pow(d,2)) / (2 * d);
+		h = sqrt(pow(r1, 2) - pow(a, 2));
+
+		px = x1 + (a*(x2 - x1)) / d;
+		py = y1 + (a*(y2 - y1)) / d;
+
+		int1x = px + (h*(y2 - y1)) / d;
+		int1y = py - (h*(x2 - x1)) / d;
+
+		int2x = px - (h*(y2 - y1)) / d;
+		int2y = py + (h*(x2 - x1)) / d;
+		
+	}
+
+	// Now we have the intersection. Check if either one lies on the plane. 
+	check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
+	check2 = abs(plane_base.a1*int2x + plane_base.a2*int2x + plane_base.a3*orient_target.Z - plane_base.b);
+
+	return min(check1, check2);
+}
