@@ -159,4 +159,6 @@ void remove_unfrequent(UniquePlanes &unique, int threshold=3);
 void print_vector(vector<RowVector3d> print_vector);
 void print_vector(vector<int> print_vector);
 
+MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
+
 #endif

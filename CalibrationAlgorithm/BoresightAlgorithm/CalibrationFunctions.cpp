@@ -516,7 +516,7 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 	R_lidar_b.resize(3, 3);
 	r_p_lidar.resize(3, 1);
 	r_p_geo.resize(3, 1);
-	output.resize(num_points, 4);
+	output.resize(num_points, 5);
 
 
 	double timestamp = 0.0;
@@ -530,26 +530,25 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 		timestamp = data(i, 0);
 
 		//Populate matrices with applicable values
-		r_b_geo << data(i, 1),
-			data(i, 2),
-			data(i, 3);
+		r_b_geo << data(i, 5),
+			data(i, 6),
+			data(i, 7);
 
-		Rotation_g2i(data(i, 7), data(i, 8), data(i, 9), R_b_geo); // Inputs: roll, pitch, azimuth, output matrix
+		Rotation_g2i(data(i, 8), data(i, 9), data(i, 10), R_b_geo); // Inputs: roll, pitch, azimuth, output matrix
 
 		r_lidar_b << boresight_LA(0, 0),
 			boresight_LA(0, 1),
 			boresight_LA(0, 2); // Assumes boresight_LA read in is a 1x3 matrix 
 
-		R_lidar_b << boresight_angles(0, 0),
-			boresight_angles(0, 1),
-			boresight_angles(0, 2); // Assumes boresight_angles is a 1x3 matrix -> read these into Rotation_g2i matrix
+		//R_lidar_b << boresight_angles(0, 0),
+		//	boresight_angles(0, 1),
+		//	boresight_angles(0, 2); // Assumes boresight_angles is a 1x3 matrix -> read these into Rotation_g2i matrix
 
 		Rotation_g2i(boresight_angles(0, 0), boresight_angles(0, 1), boresight_angles(0, 2), R_lidar_b); // Assumes boresight_angles is a 1x3 matrix
 			
-
-		vert_angle = data(i, 13);
-		horiz_angle = data(i, 14);
-		range = data(i, 15);
+		vert_angle = data(i, 2);
+		horiz_angle = data(i, 3);
+		range = data(i, 4);
 
 		r_p_lidar << range * cos(vert_angle) * sin(horiz_angle),
 			range * cos(vert_angle) * cos(horiz_angle),
@@ -559,9 +558,10 @@ MatrixXd georeference_lidar_point(MatrixXd data, MatrixXd boresight_LA, MatrixXd
 
 		// push r_p_geo on to output with timestamp
 		output(i, 0) = timestamp;
-		output(i, 1) = r_p_geo(0, 0);
-		output(i, 2) = r_p_geo(1, 0);
-		output(i, 3) = r_p_geo(2, 0);
+		output(i, 1) = data(i, 0); //Point ID
+		output(i, 2) = r_p_geo(0, 0); //X_geo
+		output(i, 3) = r_p_geo(1, 0); //Y_geo
+		output(i, 4) = r_p_geo(2, 0); //Z_geo
 
 	}
 
@@ -646,44 +646,44 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				//Check if any planes got through orientation matching
 				//if (candidates.size() < 1)
 				//{
-				//	cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
-				//}
-				
-				// reset distance threshold
-				best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
-				best_plane = -1;
-				// For each candidate plane, find closest matching plane in base (Euclidian distance)
-				for (int m = 0; m < candidates.size(); m++)
-				{
-					dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
-					if (dist_temp < best_dist)
-					{
-						//This is the best plane so far
-						best_dist = dist_temp;
-						best_plane = candidates[m]; // save the base plane index
-					}
+//	cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
+//}
 
-				}
+// reset distance threshold
+best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
+best_plane = -1;
+// For each candidate plane, find closest matching plane in base (Euclidian distance)
+for (int m = 0; m < candidates.size(); m++)
+{
+	dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
+	if (dist_temp < best_dist)
+	{
+		//This is the best plane so far
+		best_dist = dist_temp;
+		best_plane = candidates[m]; // save the base plane index
+	}
 
-				if (best_plane != -1)
-				{
-					// Unique plane match. This plane already exists. Add frequency
-					// Add the best plane to the mapping matrix
-					//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
-					mapping_temp << best_plane, i, k;
-					unique.mapping_vec.push_back(mapping_temp);
-					//update_frequency
-					unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
-					
-				}
-				else
-				{
-					// This plane is new. Add it to the unique planes.
-					unique.unique_planes.push_back(scenes[i].planes[k]);
-					mapping_temp << unique.unique_planes.size() - 1, i, k; // will be referencing the next unique plane
-					unique.mapping_vec.push_back(mapping_temp);
-					unique.frequency.push_back(1);
-				}
+}
+
+if (best_plane != -1)
+{
+	// Unique plane match. This plane already exists. Add frequency
+	// Add the best plane to the mapping matrix
+	//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
+	mapping_temp << best_plane, i, k;
+	unique.mapping_vec.push_back(mapping_temp);
+	//update_frequency
+	unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
+
+}
+else
+{
+	// This plane is new. Add it to the unique planes.
+	unique.unique_planes.push_back(scenes[i].planes[k]);
+	mapping_temp << unique.unique_planes.size() - 1, i, k; // will be referencing the next unique plane
+	unique.mapping_vec.push_back(mapping_temp);
+	unique.frequency.push_back(1);
+}
 			}
 
 		}
@@ -737,6 +737,40 @@ void print_vector(vector<int> print_vector)
 		cout << "\t" << print_vector[i] << endl;
 
 	}
+
+}
+
+MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
+{
+	MatrixXd output;
+	output.resize(11, lidar_data.size());
+	double timestamp = 0;
+
+	for (int i = 0; i < lidar_data.size(); i++)
+	{
+		output(i, 0) = i; //Point ID
+		output(i, 2) = lidar_data(i, 12); // Horizontal angle
+		output(i, 3) = lidar_data(i, 8); // Vertical angle
+		output(i, 4) = lidar_data(i, 9); // Range
+
+		for (int j = 0; j < IE_data.size(); j++)
+		{
+			if (IE_data(j, 0) == lidar_data(i, 10)) // TODO: Make expression to equate timestamps (GPS week seconds vs whatever lidar time is?)
+			{
+				timestamp = IE_data(j, 0);
+				output(i, 1) = timestamp;
+				output(i, 5) = IE_data(j, 1); //X_GNSS
+				output(i, 6) = IE_data(j, 2); //Y_GNSS
+				output(i, 7) = IE_data(j, 3); //Z_GNSS
+				output(i, 8) = IE_data(j, 7); //roll
+				output(i, 9) = IE_data(j, 8); //pitch
+				output(i, 10) = IE_data(j, 9); //yaw
+			}
+		}
+
+	}
+
+	return output;
 
 }
 
