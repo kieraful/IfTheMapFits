@@ -597,128 +597,123 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 	}
 
-	for (int i = 1; i < scenes.size(); i++) // Target scene
+	for (int i = 1; i < scenes.size(); i++) // For each Target scene i
 	{
-		for (int j = 0; j < unique.unique_planes.size(); j++) // For each base scene
-		{ 
-			// Make rotation matrix from scene i to base
-			del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[j].omega;
-			del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[j].phi;
-			del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[j].kappa;
-			Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
+		for (int j = 0; j < scenes[i].planes.size(); j++) // for each plane j in target scene i
+		{
+			// Target plane to matrix
+			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
 
-			for (int k = 0; k < scenes[i].planes.size(); k++) // each plane in target scene
+			candidates.clear();
+			for (int k = 0; k < unique.unique_planes.size();k++) // for each unique plane k
 			{
-				// Target plane to matrix
-				target_plane_vec << scenes[i].planes[k].a1, scenes[i].planes[k].a2, scenes[i].planes[k].a3;
+				// Make rotation matrix from scene i to unique plane
+				del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[k].omega;
+				del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[k].phi;
+				del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[k].kappa;
+				Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
 
 				// Rotate plane to match base
 				target_rot_vec = target_plane_vec * R_del;
 
-				// For each plane in scene, find closest matching planes in base (Orientation)
-				// If multiple within threshold, save all and continue to distance
-				candidates.clear(); // clear the candidates vector
-				for (int l = 0; l < unique.unique_planes.size(); l++) //each plane in base scene
+				// Base plane to matrix
+				base_plane_vec << unique.unique_planes[k].a1, unique.unique_planes[k].a2, unique.unique_planes[k].a3;
+				//dot product
+
+				 //------ Debug --------------
+
+				//cout << "\n\n \t\tDEBUGGING\t\n\n";
+				//cout << "The DOT product: " << base_plane_vec.dot(target_plane_vec) << endl;
+				//---------------------------
+
+
+				dot_prod = base_plane_vec.dot(target_plane_vec);
+				if (1 - dot_prod < thresh_orientation)
 				{
-					// Base plane to matrix
-					base_plane_vec << unique.unique_planes[l].a1, unique.unique_planes[l].a2, unique.unique_planes[l].a3;
-					//dot product
-
-					// ------ Debug --------------
-
-					//cout << "\n\n \t\tDEBUGGING\t\n\n";
-					//print_vector(unique.mapping_vec);
-					//fprintf(stdout, "\n\nTarget Plane:\t%f\t%f\t%f\n", target_plane_vec(0), target_plane_vec(1), target_plane_vec(2));
-					//cout << "\nRotation Matrix Rdel:\n" << R_del;
-					//fprintf(stdout, "\nBase Plane:\t%f\t%f\t%f\n", base_plane_vec(0), base_plane_vec(1), base_plane_vec(2));
-					//cout << "The DOT product: " << base_plane_vec.dot(target_plane_vec) << endl;
-					// ---------------------------
+					candidates.push_back(k); // place candidate unique plane index in vector
+				}
 
 
-					dot_prod = base_plane_vec.dot(target_plane_vec);
-					if (1 - dot_prod < thresh_orientation)
+			}
+
+			// If there is more than 1 candidate, check the relative distances
+
+			// reset distance threshold
+			best_dist = 10; // Planes should definitely not be more than 2 meters away from each other
+			best_plane = -1;
+			// For each candidate plane, find closest matching plane in base (Euclidian distance)
+			if (candidates.size() > 1)
+			{
+				for (int m = 0; m < candidates.size(); m++)
+				{
+					//dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
+
+					//clog << "Checking distance!";
+
+
+
+					dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
+					//clog << dist_temp << endl;
+
+					//Debug
+					//cout << "\nDistance : " << dist_temp;
+					//cout << "\tm: " << m;
+					//cout << "\tCandidate[m]" << candidates[m];
+					//--------------
+
+					if (dist_temp < best_dist)
 					{
-						candidates.push_back(l); // place base plane index in vector
+						//This is the best plane so far
+						best_dist = dist_temp;
+						best_plane = candidates[m]; // save the base plane index
 					}
-
-				}
-
-				//Check if any planes got through orientation matching
-				//if (candidates.size() < 1)
-				//{
-				//	cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
-				//}
-				
-				// reset distance threshold
-				best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
-				best_plane = -1;
-				// For each candidate plane, find closest matching plane in base (Euclidian distance)
-				if (candidates.size() > 1)
-				{
-					for (int m = 0; m < candidates.size(); m++)
-					{
-						//dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
-						//if (dist_temp < best_dist)
-						//{
-						//	//This is the best plane so far
-						//	best_dist = dist_temp;
-						//	best_plane = candidates[m]; // save the base plane index
-						//}
-						dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
-						if (dist_temp < best_dist)
-						{
-							best_plane = candidates[m]; // save the base plane index
-
-						}
-					}
-				}
-
-				else if(candidates.size() == 1)
-				{
-					best_plane = candidates[0];
-				}
-
-				if (best_plane != -1)
-				{
-					// Unique plane match. This plane already exists. Add frequency
-					// Add the best plane to the mapping matrix
-					//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
-					mapping_temp << best_plane, i, k;
-					unique.mapping_vec.push_back(mapping_temp);
-					//update_frequency
-					unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
-					
-				}
-				else
-				{
-					// This plane is new. Add it to the unique planes.
-					unique.unique_planes.push_back(scenes[i].planes[k]);
-					mapping_temp << unique.unique_planes.size() - 1, i, k; // will be referencing the next unique plane
-					unique.mapping_vec.push_back(mapping_temp);
-					unique.frequency.push_back(1);
-					unique.reference_orientations.push_back(scenes[i].scene_orientation);
 				}
 			}
 
+			else if (candidates.size() == 1)
+			{
+				best_plane = candidates[0];
+			}
+
+			if (best_plane != -1)
+			{
+				// Unique plane match. This plane already exists. Add frequency
+				// Add the best plane to the mapping matrix
+				//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
+				mapping_temp << best_plane, i, j;
+				unique.mapping_vec.push_back(mapping_temp);
+				//update_frequency
+				unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
+				
+			}
+			else
+			{
+				// This plane is new. Add it to the unique planes.
+				unique.unique_planes.push_back(scenes[i].planes[j]);
+				mapping_temp << unique.unique_planes.size() - 1, i, j; // will be referencing the next unique plane
+				unique.mapping_vec.push_back(mapping_temp);
+				unique.frequency.push_back(1);
+				unique.reference_orientations.push_back(scenes[i].scene_orientation);
+			}
+
 		}
-
-
-
-
+		
 	}
 
 	return unique;
 }
 
-void remove_unfrequent(UniquePlanes & unique, int threshold)
+int remove_unfrequent(UniquePlanes & unique, int threshold)
 {
 	// Removes the less frequent planes from the mapping vector
+	int removed = 0;
 
 	for (int i = 0; i < unique.frequency.size(); i++)
 	{
 		if (unique.frequency[i] < threshold)
 		{
 			//This plane has too few referencing scenes. Remove from mapping vector
+			removed++;
 			for (int j = 0; j < unique.mapping_vec.size(); j++)
 			{
 				if ((int)unique.mapping_vec[j](0) == i)
@@ -729,7 +724,7 @@ void remove_unfrequent(UniquePlanes & unique, int threshold)
 		}
 	}
 
-
+	return removed;
 }
 
 void print_vector(vector<RowVector3d> print_vector)
@@ -765,8 +760,8 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	double x1, x2, y1, y2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
 
 
-	d_base = plane_base.b; // Distance from origin in base scene
-	d_target = plane_target.b; // Distance from origin in target scene
+	d_base = abs(plane_base.b); // Distance from origin in base scene
+	d_target = abs(plane_target.b); // Distance from origin in target scene
 
 	//find intersection points
 	x1 = orient_base.X;
@@ -774,20 +769,29 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	x2 = orient_target.X;
 	y2 = orient_target.X;
 
-	r1 = 5;
-	r2 = 8;
+	r1 = abs(plane_base.b);
+	r2 = abs(plane_target.b);
 
 	d = sqrt(pow((x1 - x2),2) + pow(y1 - y2,2));
 
 	if (d > (r1 + r2))
 	{
-		//Does not intersect
+		//Does not intersect. Not the right plane. 
+		check1 = 100;
+		check2 = 100;
 
 	}
-	else if (d + min(r1, r2) < max(r1, r2))
+	else if (d + min(r1, r2) <= max(r1, r2))
 	{
 
 		// One is in other
+		//TODO: Find closest point
+
+		check1 = abs(r1 - r2 - d);
+		check2 = 100;
+
+
+
 	}
 
 	else
@@ -804,11 +808,13 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 		int2x = px - (h*(y2 - y1)) / d;
 		int2y = py + (h*(x2 - x1)) / d;
 		
+
+		// Now we have the intersection. Check if either one lies on the plane. 
+		check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
+		check2 = abs(plane_base.a1*int2x + plane_base.a2*int2x + plane_base.a3*orient_target.Z - plane_base.b);
+
 	}
 
-	// Now we have the intersection. Check if either one lies on the plane. 
-	check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
-	check2 = abs(plane_base.a1*int2x + plane_base.a2*int2x + plane_base.a3*orient_target.Z - plane_base.b);
 
 	return min(check1, check2);
 }

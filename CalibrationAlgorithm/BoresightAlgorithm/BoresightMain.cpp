@@ -29,13 +29,13 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
-	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
-	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
 
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
@@ -76,7 +76,7 @@ int main() {
 
 		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud);
+		planes = FitPlanes(Novatel_cloud, 20);
 
 
 
@@ -136,9 +136,8 @@ int main() {
 	//std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
 
 	//Remove less frequent planes. 
-	int num_planes = unique_planes.unique_planes.size();
-	remove_unfrequent(unique_planes);
-	clog << "Done. Removed " << num_planes - unique_planes.unique_planes.size() << " infrequent planes.\n";
+	int num_removed = remove_unfrequent(unique_planes);
+	clog << "Done. Removed " << num_removed << " infrequent planes.\n";
 
 
 	// ------------DEBUG

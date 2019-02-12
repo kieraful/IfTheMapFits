@@ -14,8 +14,7 @@ C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/sample_consensus/model_types.h(99
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/sample_consensus/model_types.h(99): note: see declaration of 'pcl::SAC_SAMPLE_SIZE'
 ..\BoresightMain.cpp(19): warning C4129: ' ': unrecognized character escape sequence
 ..\BoresightMain.cpp(21): warning C4129: '`': unrecognized character escape sequence
-..\BoresightMain.cpp(139): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-..\BoresightMain.cpp(146): warning C4129: 'F': unrecognized character escape sequence
+..\BoresightMain.cpp(145): warning C4129: 'F': unrecognized character escape sequence
 C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(549): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(525): note: while compiling class template member function 'bool pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>::getColor(vtkSmartPointer<vtkDataArray> &) const'
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/pcl_visualizer.h(907): note: see reference to class template instantiation 'pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>' being compiled
