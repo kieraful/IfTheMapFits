@@ -37,6 +37,10 @@ int main() {
 	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
 	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
+	char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
 	pcd_files.push_back(file3);
@@ -50,7 +54,8 @@ int main() {
 
 	//Read in IE output and save to matrix
 	MatrixXd GNSS_INS_data;
-	Read_Mat("IE_Output_RoofBaseMP_noheader.txt", GNSS_INS_data);
+	char * IE_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\IE_Output_RoofBaseMP_noheader.txt";
+	Read_Mat(IE_file, GNSS_INS_data);
 
 	for (int i = 0; i < pcd_files.size(); i++)
 	{
@@ -110,7 +115,7 @@ int main() {
 
 		//Read in IE output and save to matrix
 		MatrixXd GNSS_INS_data;
-		//Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data);
+		Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
 		//Read_Mat("Orientation.txt", GNSS_INS_data);
 
 		//GNSS
@@ -174,9 +179,20 @@ int main() {
 
 
 	// GEOREFERENCE
+	// TODO: Read in LiDAR frame -- or extract frame from full dataset? 
+	MatrixXd lidar_data;
+	char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
+	Read_Mat(lidar_file, lidar_data);
 
-		// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
-		// TODO: Call georeferencing function
+	// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
+	// Assumes that lidar_data is all points associated with one frame
+	// Need to fix below function so that we can equate reference frame of timestamps
+	//MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data);
+
+	// TODO: Call georeferencing function
+	//MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
+
+	// OPTIONAL: Convert final MatrixXd to pcd::PointCloud or a custom struct
 
 	clog << "\n\n FINISHED CALIBRATION\n\n";
 

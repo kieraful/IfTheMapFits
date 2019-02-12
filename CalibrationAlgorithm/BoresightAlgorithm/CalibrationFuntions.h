@@ -149,11 +149,15 @@ int remove_unfrequent(UniquePlanes &unique, int threshold=3);
 void print_vector(vector<RowVector3d> print_vector);
 void print_vector(vector<int> print_vector);
 
+<<<<<<< HEAD
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
 
 void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
 void R_between_orientations(Orientation O1, Orientation O2, Matrix3b3 &R);
 
+=======
+MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
+>>>>>>> 1bb36c9059f1af88febb37e80021d98324c40029
 
 #endif
