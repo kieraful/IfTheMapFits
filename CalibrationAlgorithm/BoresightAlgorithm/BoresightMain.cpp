@@ -102,7 +102,7 @@ int main() {
 		}
 
 		//save planes
-		save_planes(planes);
+		//save_planes(planes);
 
 
 		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
