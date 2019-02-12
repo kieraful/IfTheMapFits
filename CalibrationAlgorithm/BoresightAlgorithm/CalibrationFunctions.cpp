@@ -756,7 +756,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	// Done by finding circle intersection, and if it satisfies the base plane equation. 
 
 	bool result = false;
-	double d_base, d_target; 
+	double d_base, d_target;
 	double x1, x2, y1, y2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
 
 
@@ -772,7 +772,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	r1 = abs(plane_base.b);
 	r2 = abs(plane_target.b);
 
-	d = sqrt(pow((x1 - x2),2) + pow(y1 - y2,2));
+	d = sqrt(pow((x1 - x2), 2) + pow(y1 - y2, 2));
 
 	if (d > (r1 + r2))
 	{
@@ -796,7 +796,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 	else
 	{
-		a = (pow(r1,2) - pow(r2, 2) + pow(d,2)) / (2 * d);
+		a = (pow(r1, 2) - pow(r2, 2) + pow(d, 2)) / (2 * d);
 		h = sqrt(pow(r1, 2) - pow(a, 2));
 
 		px = x1 + (a*(x2 - x1)) / d;
@@ -807,7 +807,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 		int2x = px - (h*(y2 - y1)) / d;
 		int2y = py + (h*(x2 - x1)) / d;
-		
+
 
 		// Now we have the intersection. Check if either one lies on the plane. 
 		check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
@@ -815,6 +815,44 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 	}
 
-
 	return min(check1, check2);
+}
+
+void rotate_scene(Scene & scene_target, Matrix3b3 R)
+{
+	//Rotate entire scene
+	// Rotate all planes in scene
+	// Rotate all Points in each plane
+	// change Orientation to match base scene. 
+	// This function does not move the location of the scene, obviously. Just the three orientation angles Omega, Phi, and Kappa
+	// These values are taken from the rotation matrix R passed in. 
+
+	Plane temp_plane;
+	RowVector3d plane_vec;
+
+
+	//Rotate all planes in the scene. 
+	for (int i = 0; i < scene_target.planes.size(); i++) // Each plane
+	{
+		plane_vec << scene_target.planes[i].a1, scene_target.planes[i].a2, scene_target.planes[i].a3;
+		plane_vec = plane_vec * R; 
+		scene_target.planes[i].a1 = plane_vec(0);
+		scene_target.planes[i].a2 = plane_vec(1);
+		scene_target.planes[i].a3 = plane_vec(2);
+
+		//Rotate all point in the plane
+		for (int j = 0; j < scene_target.planes[i].points_on_plane->points.size(); j++) //each point on that plane
+		{
+			plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
+			plane_vec = plane_vec * R;
+			scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
+			scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
+			scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
+		}
+
+	}
+	//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
+
+	Convert_R_to_Angles(R, scene_target.scene_orientation.omega, scene_target.scene_orientation.phi, scene_target.scene_orientation.kappa);
+	
 }

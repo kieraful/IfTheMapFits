@@ -44,6 +44,8 @@ int main() {
 	vector<Plane> planes;
 	vector<Scene> scenes;
 
+	Orientation base_orientation;
+
 	//Read in IE output and save to matrix
 	MatrixXd GNSS_INS_data;
 	Read_Mat("IE_Output_RoofBaseMP_noheader.txt", GNSS_INS_data);
@@ -121,10 +123,27 @@ int main() {
 		// VISUALIZE
 		//visualize_planes(planes);
 
+		//If this is the first scene, make it base orientation. 
+		if (scenes.size() < 1)
+		{
+			base_orientation.omega = temp_scene.scene_orientation.omega;
+			base_orientation.phi = temp_scene.scene_orientation.phi;
+			base_orientation.kappa = temp_scene.scene_orientation.kappa;
+
+		}
+		else
+		{
+			//Rotate to match the base plane
+
+
+
+		}
+
+
 		//Add to scene
 		temp_scene.planes = planes;
-		
 		scenes.push_back(temp_scene);
+
 	}
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";

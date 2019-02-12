@@ -151,6 +151,6 @@ void print_vector(vector<int> print_vector);
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
 
-
+void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
 #endif
