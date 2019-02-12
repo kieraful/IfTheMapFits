@@ -153,4 +153,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
+void R_between_orientations(Orientation O1, Orientation O2, Matrix3b3 &R);
+
+
 #endif

@@ -608,13 +608,13 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			for (int k = 0; k < unique.unique_planes.size();k++) // for each unique plane k
 			{
 				// Make rotation matrix from scene i to unique plane
-				del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[k].omega;
-				del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[k].phi;
-				del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[k].kappa;
-				Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
+				//del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[k].omega;
+				//del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[k].phi;
+				//del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[k].kappa;
+				//Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
 
 				// Rotate plane to match base
-				target_rot_vec = target_plane_vec * R_del;
+				//target_rot_vec = target_plane_vec * R_del;
 
 				// Base plane to matrix
 				base_plane_vec << unique.unique_planes[k].a1, unique.unique_planes[k].a2, unique.unique_planes[k].a3;
@@ -830,29 +830,44 @@ void rotate_scene(Scene & scene_target, Matrix3b3 R)
 	Plane temp_plane;
 	RowVector3d plane_vec;
 
-
-	//Rotate all planes in the scene. 
-	for (int i = 0; i < scene_target.planes.size(); i++) // Each plane
+	pcl::ScopeTime filterscope("Rotating scene");
 	{
-		plane_vec << scene_target.planes[i].a1, scene_target.planes[i].a2, scene_target.planes[i].a3;
-		plane_vec = plane_vec * R; 
-		scene_target.planes[i].a1 = plane_vec(0);
-		scene_target.planes[i].a2 = plane_vec(1);
-		scene_target.planes[i].a3 = plane_vec(2);
-
-		//Rotate all point in the plane
-		for (int j = 0; j < scene_target.planes[i].points_on_plane->points.size(); j++) //each point on that plane
+		//Rotate all planes in the scene. 
+		for (int i = 0; i < scene_target.planes.size(); i++) // Each plane
 		{
-			plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
+			plane_vec << scene_target.planes[i].a1, scene_target.planes[i].a2, scene_target.planes[i].a3;
 			plane_vec = plane_vec * R;
-			scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
-			scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
-			scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
+			scene_target.planes[i].a1 = plane_vec(0);
+			scene_target.planes[i].a2 = plane_vec(1);
+			scene_target.planes[i].a3 = plane_vec(2);
+
+			//Rotate all point in the plane
+			for (int j = 0; j < scene_target.planes[i].points_on_plane->points.size(); j++) //each point on that plane
+			{
+				plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
+				plane_vec = plane_vec * R;
+				scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
+				scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
+				scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
+			}
+
 		}
-
+		//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
 	}
-	//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
-
 	Convert_R_to_Angles(R, scene_target.scene_orientation.omega, scene_target.scene_orientation.phi, scene_target.scene_orientation.kappa);
 	
+}
+
+
+void R_between_orientations(Orientation base_o, Orientation target_o, Matrix3b3 &R)
+{
+	double del_omega, del_phi, del_kappa;
+
+	del_omega = target_o.omega - base_o.omega;
+	del_phi = target_o.phi - base_o.phi;
+	del_kappa = target_o.kappa - base_o.kappa;
+
+	Rotation_g2i(del_omega, del_phi, del_kappa, R);
+
+
 }

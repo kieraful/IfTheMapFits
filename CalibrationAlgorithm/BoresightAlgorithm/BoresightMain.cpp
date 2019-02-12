@@ -46,6 +46,8 @@ int main() {
 
 	Orientation base_orientation;
 
+	Matrix3b3 R_del;
+
 	//Read in IE output and save to matrix
 	MatrixXd GNSS_INS_data;
 	Read_Mat("IE_Output_RoofBaseMP_noheader.txt", GNSS_INS_data);
@@ -134,11 +136,10 @@ int main() {
 		else
 		{
 			//Rotate to match the base plane
-
-
+			R_between_orientations(base_orientation, temp_scene.scene_orientation, R_del);
+			rotate_scene(temp_scene, R_del);
 
 		}
-
 
 		//Add to scene
 		temp_scene.planes = planes;
