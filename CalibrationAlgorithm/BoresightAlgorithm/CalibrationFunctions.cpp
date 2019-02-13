@@ -287,7 +287,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
 	seg.setMethodType(pcl::SAC_RANSAC);
-	seg.setDistanceThreshold(0.15); // keep points within 0.10 m of the plane
+	seg.setDistanceThreshold(0.15); // keep points within 0.15 m of the plane
 	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
 	seg.setAxis(axis);
 	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane
@@ -577,16 +577,19 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 	UniquePlanes unique;
 	double del_omega, del_phi, del_kappa; // Defined as scene(i) - base
 	Matrix3b3 R_del;
-	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp;
+	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp, global_translation;
 	vector<int> candidates;
 	double thresh_orientation = 0.1;
-	double best_dist, dot_prod, dist_temp;
+	double best_dist, dot_prod, dist_temp, plane_dist;
 	int best_plane;
 	Plane temp_plane;
 	Orientation temp_orientation;
 
 	//Add base scene to unique planes, as there is nothing to match yet
 	for (int i = 0; i < scenes[0].planes.size(); i++) {
+
+
+		plane_to_global(scenes[0].planes[i], scenes[0].scene_orientation);
 
 		unique.unique_planes.push_back(scenes[0].planes[i]);
 		mapping_temp << i , 0 , i;
@@ -603,37 +606,22 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 		{
 			// Target plane to matrix
 			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
+			// Change plane orientation to global frame. 
+			plane_to_global(scenes[i].planes[j], scenes[i].scene_orientation);
+			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
 
 			candidates.clear();
 			for (int k = 0; k < unique.unique_planes.size();k++) // for each unique plane k
 			{
-				// Make rotation matrix from scene i to unique plane
-				//del_omega = scenes[i].scene_orientation.omega - unique.reference_orientations[k].omega;
-				//del_phi = scenes[i].scene_orientation.phi - unique.reference_orientations[k].phi;
-				//del_kappa = scenes[i].scene_orientation.kappa - unique.reference_orientations[k].kappa;
-				//Rotation_g2i(del_omega, del_kappa, del_phi, R_del);
-
-				// Rotate plane to match base
-				//target_rot_vec = target_plane_vec * R_del;
-
+				
 				// Base plane to matrix
 				base_plane_vec << unique.unique_planes[k].a1, unique.unique_planes[k].a2, unique.unique_planes[k].a3;
-				//dot product
-
-				 //------ Debug --------------
-
-				//cout << "\n\n \t\tDEBUGGING\t\n\n";
-				//cout << "The DOT product: " << base_plane_vec.dot(target_plane_vec) << endl;
-				//---------------------------
-
-
+				// ------- Dot Product Check -------------
 				dot_prod = base_plane_vec.dot(target_plane_vec);
-				if (1 - dot_prod < thresh_orientation)
+				if (abs(1 - dot_prod) < thresh_orientation)
 				{
 					candidates.push_back(k); // place candidate unique plane index in vector
 				}
-
-<<<<<<< HEAD
 
 			}
 
@@ -651,9 +639,9 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 					//clog << "Checking distance!";
 
+					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
 
-
-					dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
+					//dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
 					//clog << dist_temp << endl;
 
 					//Debug
@@ -669,49 +657,6 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 						best_plane = candidates[m]; // save the base plane index
 					}
 				}
-=======
-				//Check if any planes got through orientation matching
-				//if (candidates.size() < 1)
-				//{
-//	cerr << "There are no matching orientation to the following plane:\n\tTarget: " << i << "\tBase: " << j << endl;
-//}
-
-// reset distance threshold
-best_dist = 2; // Planes should definitely not be more than 2 meters away from eachother
-best_plane = -1;
-// For each candidate plane, find closest matching plane in base (Euclidian distance)
-for (int m = 0; m < candidates.size(); m++)
-{
-	dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
-	if (dist_temp < best_dist)
-	{
-		//This is the best plane so far
-		best_dist = dist_temp;
-		best_plane = candidates[m]; // save the base plane index
-	}
-
-}
-
-if (best_plane != -1)
-{
-	// Unique plane match. This plane already exists. Add frequency
-	// Add the best plane to the mapping matrix
-	//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
-	mapping_temp << best_plane, i, k;
-	unique.mapping_vec.push_back(mapping_temp);
-	//update_frequency
-	unique.frequency[best_plane] = unique.frequency[best_plane] + 1;
-
-}
-else
-{
-	// This plane is new. Add it to the unique planes.
-	unique.unique_planes.push_back(scenes[i].planes[k]);
-	mapping_temp << unique.unique_planes.size() - 1, i, k; // will be referencing the next unique plane
-	unique.mapping_vec.push_back(mapping_temp);
-	unique.frequency.push_back(1);
-}
->>>>>>> 1bb36c9059f1af88febb37e80021d98324c40029
 			}
 
 			else if (candidates.size() == 1)
@@ -723,7 +668,6 @@ else
 			{
 				// Unique plane match. This plane already exists. Add frequency
 				// Add the best plane to the mapping matrix
-				//clog << "\nFound matching plane for target scene " << i << " plane " << k << ", in base " << j << " plane " << best_plane << endl;
 				mapping_temp << best_plane, i, j;
 				unique.mapping_vec.push_back(mapping_temp);
 				//update_frequency
@@ -793,7 +737,6 @@ void print_vector(vector<int> print_vector)
 
 }
 
-<<<<<<< HEAD
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
 {
@@ -897,26 +840,37 @@ void rotate_scene(Scene & scene_target, Matrix3b3 R)
 			}
 
 		}
-		//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
+		
 	}
+	//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
 	Convert_R_to_Angles(R, scene_target.scene_orientation.omega, scene_target.scene_orientation.phi, scene_target.scene_orientation.kappa);
 	
 }
 
 
-void R_between_orientations(Orientation base_o, Orientation target_o, Matrix3b3 &R)
+void plane_to_global(Plane &p1, Orientation O1)
 {
-	double del_omega, del_phi, del_kappa;
+	double del_omega, del_phi, del_kappa, plane_dist;
+	Matrix3b3 R_del;
+	RowVector3d global_translation, target_rot_vec, target_plane_vec;
+	
+	target_plane_vec << p1.a1, p1.a2, p1.a3;
 
-	del_omega = target_o.omega - base_o.omega;
-	del_phi = target_o.phi - base_o.phi;
-	del_kappa = target_o.kappa - base_o.kappa;
+	Rotation_g2i(360 - O1.omega, 360 - O1.phi, 90 - O1.kappa, R_del);
+	global_translation << -1 * O1.X, -1 * O1.Y, -1 * O1.Z;
 
-	Rotation_g2i(del_omega, del_phi, del_kappa, R);
+	//Find new plane parameters
+	target_rot_vec = target_plane_vec * R_del;
+	plane_dist = target_plane_vec * global_translation.transpose() + p1.b;
+
+	p1.a1 = target_rot_vec(0);
+	p1.a2 = target_rot_vec(1);
+	p1.a3 = target_rot_vec(2);
+
+	p1.b = plane_dist;
 
 
 }
-=======
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 {
 	MatrixXd output;
@@ -950,5 +904,3 @@ MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 	return output;
 
 }
-
->>>>>>> 1bb36c9059f1af88febb37e80021d98324c40029

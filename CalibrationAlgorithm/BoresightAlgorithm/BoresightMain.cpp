@@ -37,13 +37,13 @@ int main() {
 	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
 	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
-	char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
-	pcd_files.push_back(file3);
+	//pcd_files.push_back(file3);
 
 	vector<Plane> planes;
 	vector<Scene> scenes;
@@ -54,8 +54,9 @@ int main() {
 
 	//Read in IE output and save to matrix
 	MatrixXd GNSS_INS_data;
-	char * IE_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\IE_Output_RoofBaseMP_noheader.txt";
-	Read_Mat(IE_file, GNSS_INS_data);
+	Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
+																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
+
 
 	for (int i = 0; i < pcd_files.size(); i++)
 	{
@@ -113,11 +114,6 @@ int main() {
 		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
 
-		//Read in IE output and save to matrix
-		MatrixXd GNSS_INS_data;
-		Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
-		//Read_Mat("Orientation.txt", GNSS_INS_data);
-
 		//GNSS
 		temp_scene.scene_orientation.X = 0;
 		temp_scene.scene_orientation.Y = 0;
@@ -129,23 +125,7 @@ int main() {
 		
 		// VISUALIZE
 		//visualize_planes(planes);
-
-		//If this is the first scene, make it base orientation. 
-		if (scenes.size() < 1)
-		{
-			base_orientation.omega = temp_scene.scene_orientation.omega;
-			base_orientation.phi = temp_scene.scene_orientation.phi;
-			base_orientation.kappa = temp_scene.scene_orientation.kappa;
-
-		}
-		else
-		{
-			//Rotate to match the base plane
-			R_between_orientations(base_orientation, temp_scene.scene_orientation, R_del);
-			rotate_scene(temp_scene, R_del);
-
-		}
-
+		
 		//Add to scene
 		temp_scene.planes = planes;
 		scenes.push_back(temp_scene);
@@ -181,8 +161,8 @@ int main() {
 	// GEOREFERENCE
 	// TODO: Read in LiDAR frame -- or extract frame from full dataset? 
 	MatrixXd lidar_data;
-	char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
-	Read_Mat(lidar_file, lidar_data);
+	//char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
+	//Read_Mat(lidar_file, lidar_data);
 
 	// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
 	// Assumes that lidar_data is all points associated with one frame
