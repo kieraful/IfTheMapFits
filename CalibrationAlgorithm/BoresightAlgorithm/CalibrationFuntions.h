@@ -147,6 +147,7 @@ UniquePlanes match_scenes(vector<Scene> scenes);
 int remove_unfrequent(UniquePlanes &unique, int threshold=3);
 
 void print_vector(vector<RowVector3d> print_vector);
+void print_vector(vector<RowVectorXd> print_vector);
 void print_vector(vector<int> print_vector);
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
@@ -157,5 +158,5 @@ void plane_to_global(Plane &p1, Orientation O1);
 
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
 
-
+void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vector<RowVectorXd> &point_details, vector<RowVectorXd> &scene_details, vector<RowVectorXd> &plane_details);
 #endif

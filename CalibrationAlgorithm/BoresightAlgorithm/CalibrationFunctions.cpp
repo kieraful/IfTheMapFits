@@ -726,6 +726,20 @@ void print_vector(vector<RowVector3d> print_vector)
 
 }
 
+
+void print_vector(vector<RowVectorXd> print_vector)
+{
+	for (int i = 0; i < print_vector.size(); i++)
+	{
+		for (int j = 0; j < print_vector[i].cols(); j++)
+		{
+			cout << "\t" << print_vector[i](j);
+		}
+		cout << endl;
+
+	}
+}
+
 void print_vector(vector<int> print_vector)
 {
 	for (int i = 0; i < print_vector.size(); i++)
@@ -832,19 +846,19 @@ void rotate_scene(Scene & scene_target, Matrix3b3 R)
 			//Rotate all point in the plane
 			for (int j = 0; j < scene_target.planes[i].points_on_plane->points.size(); j++) //each point on that plane
 			{
-				plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
-				plane_vec = plane_vec * R;
-				scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
-				scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
-				scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
+plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
+plane_vec = plane_vec * R;
+scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
+scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
+scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
 			}
 
 		}
-		
+
 	}
 	//Get rotation angles. Change the scene orientation angles (Omega, Phi, Kappa)
 	Convert_R_to_Angles(R, scene_target.scene_orientation.omega, scene_target.scene_orientation.phi, scene_target.scene_orientation.kappa);
-	
+
 }
 
 
@@ -853,7 +867,7 @@ void plane_to_global(Plane &p1, Orientation O1)
 	double del_omega, del_phi, del_kappa, plane_dist;
 	Matrix3b3 R_del;
 	RowVector3d global_translation, target_rot_vec, target_plane_vec;
-	
+
 	target_plane_vec << p1.a1, p1.a2, p1.a3;
 
 	Rotation_g2i(360 - O1.omega, 360 - O1.phi, 90 - O1.kappa, R_del);
@@ -902,5 +916,52 @@ MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 	}
 
 	return output;
+
+}
+void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vector<RowVectorXd> &point_details, vector<RowVectorXd> &scene_details, vector<RowVectorXd> &plane_details)
+{
+	//This function makes the three Bundle Adjustment observation vectors
+
+	RowVectorXd points_row(5), planes_row(4), scene_row(6);
+	Scene temp_scene;
+	double x, y, z;
+
+	//Point Details
+	//	This vector contains the details of each point in the adjustment. Each of these points are from a scene, 
+	//	and lie on one of the unique planes
+	//	| X | Y | Z | Unique Plane | Scene | 
+
+	for (int i = 0; i < unique.mapping_vec.size(); i++)
+	{
+		temp_scene = scenes[unique.mapping_vec[i](1)];
+		for (int j = 0; j < temp_scene.planes[unique.mapping_vec[i](2)].points_on_plane->points.size(); j++)
+		{
+			x = temp_scene.planes[unique.mapping_vec[i](2)].points_on_plane->points[j].x;
+			y = temp_scene.planes[unique.mapping_vec[i](2)].points_on_plane->points[j].y;
+			z = temp_scene.planes[unique.mapping_vec[i](2)].points_on_plane->points[j].z;
+			points_row << x, y, z, unique.mapping_vec[i](0), unique.mapping_vec[i](1);
+			point_details.push_back(points_row);
+		}
+	}
+
+	//Plane Details
+	//	This vector contains the details of each unique plane in the scenes.
+	//	| A1 | A2 | A3 | B | 
+	for (int i = 0; i < unique.unique_planes.size(); i++)
+	{
+		planes_row << unique.unique_planes[i].a1, unique.unique_planes[i].a2, unique.unique_planes[i].a3, unique.unique_planes[i].b;
+		plane_details.push_back(planes_row);
+	}
+
+	//Scene Details
+	//	This vector contains the details of each scene orientation details.
+	//	| X | Y | Z | Omega | Phi | Kappa |
+	for (int i = 0; i < scenes.size(); i++)
+	{
+		scene_row << scenes[i].scene_orientation.X, scenes[i].scene_orientation.Y, scenes[i].scene_orientation.Z, scenes[i].scene_orientation.omega, scenes[i].scene_orientation.phi, scenes[i].scene_orientation.kappa;
+		scene_details.push_back(scene_row);
+	}
+
+
 
 }

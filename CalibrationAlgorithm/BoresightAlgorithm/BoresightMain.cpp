@@ -43,7 +43,7 @@ int main() {
 
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
-	//pcd_files.push_back(file3);
+	pcd_files.push_back(file3);
 
 	vector<Plane> planes;
 	vector<Scene> scenes;
@@ -154,6 +154,17 @@ int main() {
 
 	// -----------------
 
+
+	// Make output vectors
+	vector<RowVectorXd> point_details; // point #, X, Y, Z
+	vector<RowVectorXd> scene_details; // X, Y, Z, Omega, Phi, Kappa
+	vector<RowVectorXd> plane_details; // A1, A2, A3, d
+
+	create_bundle_observations(scenes, unique_planes, point_details, scene_details, plane_details);
+
+	print_vector(scene_details);
+
+	print_vector(plane_details);
 
 	// TODO: BUNDLE ADJUSTMENT
 
