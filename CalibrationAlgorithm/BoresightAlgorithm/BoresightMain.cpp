@@ -156,15 +156,20 @@ int main() {
 
 
 	// Make output vectors
-	vector<RowVectorXd> point_details; // point #, X, Y, Z
+	vector<RowVectorXd> point_details; // X, Y, Z, 
 	vector<RowVectorXd> scene_details; // X, Y, Z, Omega, Phi, Kappa
 	vector<RowVectorXd> plane_details; // A1, A2, A3, d
 
 	create_bundle_observations(scenes, unique_planes, point_details, scene_details, plane_details);
 
+	clog << "\n---------------------------Scene---------------------\n";
 	print_vector(scene_details);
 
+	clog << "\n---------------------------Plane---------------------\n";
 	print_vector(plane_details);
+
+	clog << "\n---------------------------Points---------------------\n";
+	print_vector(point_details);
 
 	// TODO: BUNDLE ADJUSTMENT
 
