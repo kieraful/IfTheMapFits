@@ -99,7 +99,6 @@ int main() {
 
 		//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
 
-		//TODO: downsample all points on each plane. These will be # of EQUATIONS
 		clog << "\nDownsampling.....\n\n";
 
 		for (int i = 0; i < planes.size(); i++) {
@@ -137,9 +136,6 @@ int main() {
 	// TODO: MATCH PLANES
 	UniquePlanes unique_planes = match_scenes(scenes);
 	clog << "Done.\nRemoving unfrequent planes....";
-	//Sort unique planes
-	//std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
-
 	//Remove less frequent planes. 
 	int num_removed = remove_unfrequent(unique_planes);
 	clog << "Done. Removed " << num_removed << " infrequent planes.\n";

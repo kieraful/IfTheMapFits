@@ -733,7 +733,7 @@ void print_vector(vector<RowVectorXd> print_vector)
 	{
 		for (int j = 0; j < print_vector[i].cols(); j++)
 		{
-			cout << "\t" << print_vector[i](j);
+			printf("\t %0.3f ",print_vector[i](j));
 		}
 		cout << endl;
 
