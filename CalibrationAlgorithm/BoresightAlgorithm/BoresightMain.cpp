@@ -1,4 +1,5 @@
 #include "CalibrationFuntions.h"
+#include "BAFunctions.h"
 
 
 int main() {
@@ -33,13 +34,13 @@ int main() {
 	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
 	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
 
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
-	char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
 	pcd_files.push_back(file1); //vector of input files
 	pcd_files.push_back(file2);
@@ -48,10 +49,15 @@ int main() {
 	vector<Plane> planes;
 	vector<Scene> scenes;
 
+	Orientation base_orientation;
+
+	Matrix3b3 R_del;
+
 	//Read in IE output and save to matrix
 	MatrixXd GNSS_INS_data;
-	char * IE_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\IE_Output_RoofBaseMP_noheader.txt";
-	Read_Mat(IE_file, GNSS_INS_data);
+	Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
+																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
+
 
 	for (int i = 0; i < pcd_files.size(); i++)
 	{
@@ -66,7 +72,7 @@ int main() {
 		clog << "Loading file....";
 		PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
 		if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
-		{// Scene 1, Orientation 1
+		{
 			clog << "\n\nProgram will close\n";
 			return -1;
 		};
@@ -81,7 +87,7 @@ int main() {
 
 		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud);
+		planes = FitPlanes(Novatel_cloud, 20);
 
 
 
@@ -94,7 +100,6 @@ int main() {
 
 		//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
 
-		//TODO: downsample all points on each plane. These will be # of EQUATIONS
 		clog << "\nDownsampling.....\n\n";
 
 		for (int i = 0; i < planes.size(); i++) {
@@ -103,33 +108,28 @@ int main() {
 		}
 
 		//save planes
-		save_planes(planes);
+		//save_planes(planes);
 
 
 		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
 
-		//Read in IE output and save to matrix
-		MatrixXd GNSS_INS_data;
-		Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
-		//Read_Mat("Orientation.txt", GNSS_INS_data);
-
 		//GNSS
-		temp_scene.X = 0;
-		temp_scene.Y = 0;
-		temp_scene.Z = 0;
+		temp_scene.scene_orientation.X = 0;
+		temp_scene.scene_orientation.Y = 0;
+		temp_scene.scene_orientation.Z = 0;
 		//INS
-		temp_scene.omega = 0;
-		temp_scene.phi = 0;
-		temp_scene.kappa = 0;
+		temp_scene.scene_orientation.omega = 0;
+		temp_scene.scene_orientation.phi = 0;
+		temp_scene.scene_orientation.kappa = 0;
 		
 		// VISUALIZE
 		//visualize_planes(planes);
-
+		
 		//Add to scene
 		temp_scene.planes = planes;
-		
 		scenes.push_back(temp_scene);
+
 	}
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
@@ -137,12 +137,9 @@ int main() {
 	// TODO: MATCH PLANES
 	UniquePlanes unique_planes = match_scenes(scenes);
 	clog << "Done.\nRemoving unfrequent planes....";
-	//Sort unique planes
-	//std::sort(unique_planes.mapping_vec.begin(), unique_planes.mapping_vec.end(), sort_planes);
-
 	//Remove less frequent planes. 
-	remove_unfrequent(unique_planes);
-	clog << "Done.\n";
+	int num_removed = remove_unfrequent(unique_planes);
+	clog << "Done. Removed " << num_removed << " infrequent planes.\n";
 
 
 	// ------------DEBUG
@@ -155,14 +152,131 @@ int main() {
 	// -----------------
 
 
-	// TODO: BUNDLE ADJUSTMENT
+	// Make output vectors
+	vector<RowVectorXd> point_details; // X, Y, Z, 
+	vector<RowVectorXd> scene_details; // X, Y, Z, Omega, Phi, Kappa
+	vector<RowVectorXd> plane_details; // A1, A2, A3, d
+
+	create_bundle_observations(scenes, unique_planes, point_details, scene_details, plane_details);
+
+	clog << "\n---------------------------Scene---------------------\n";
+	print_vector(scene_details);
+
+	clog << "\n---------------------------Plane---------------------\n";
+	print_vector(plane_details);
+
+	clog << "\n---------------------------Points---------------------\n";
+	print_vector(point_details);
+
+	
+	
+	// BUNDLE ADJUSTMENT
+	MatrixXd planeparams;
+	MatrixXd scanparams;
+	MatrixXd pointparams;	
+	
+	//Convert vector of vectors to MatrixXd for plane, scene, and lidar point parameters
+	vec2mat(plane_details, planeparams, 4);
+	vec2mat(scene_details, scanparams, 6);
+	vec2mat(point_details, pointparams, 3);
+	
+	//Get number of planes, scans, lidar points
+	int numPlanes = planeparams.rows();
+	int numScans = scanparams.rows();
+	int numLidPts = pointparams.rows();
+	
+	//total number of unknowns
+	int u = 6 + 4*numPlanes + 6*numScans; 	
+	
+	//Initial boresight parameters set to zero
+	MatrixXd bs_params = MatrixXd::Zero(6,1);
+		
+	//Initialize matrices for LS
+	MatrixXd A(numScans*6+numLidPts, u);
+	MatrixXd A_full(numScans*6+numPlanes+numLidPts, u);
+	MatrixXd N(0,0);	
+	MatrixXd w(numScans*6+numLidPts, 1);
+	MatrixXd w_full(numScans*6+numPlanes+numLidPts, 1); 
+	MatrixXd U(0,0);	
+	MatrixXd H(numPlanes, u);
+	MatrixXd V(numPlanes ,1);	
+	MatrixXd B(u+numPlanes, u+numPlanes);
+	MatrixXd C(u+numPlanes,1);
+	MatrixXd Y(u+numPlanes,1);
+	
+	//Set Clo using GNSS_INS_data - TO DO **************************************
+	MatrixXd Clo = MatrixXd::Identity(numScans * 6 + numPlanes + numLidPts, numScans * 6 + numPlanes + numLidPts);
+		
+	//Compute P using Clo. Use apriorivf=1
+	MatrixXd P = Clo.inverse();
+	
+	double mean_Y = 1;
+	
+	while(mean_Y > 0.000001)
+	{
+		computeAandw(A_full, A, H, w_full, w, V, u, numPlanes, numScans, numLidPts, bs_params, planeparams, scanparams, pointparams, GNSS_INS_data);
+		//cout << "A=" << A_full << "\n\n";
+		//cout << "w=" << w << "\n\n";
+
+		N = A_full.transpose() * P * A_full; //Not sure if N is based on the full A, P with plane eqn derivatives or not???******************************
+		/* cout << "A^T=" << A_full.transpose() << "\n\n";
+		cout << "P" << P << "\n\n";
+		cout << "N=" << N << "\n\n"; */
+
+		U = -1 * A_full.transpose() * P * w_full; //Not sure if A, P, w here are based on the full A with plane eqn derivatives or not???******************************
+		//cout << "U=" << U << "\n\n";
+
+		B.block(0, 0, u, u) = N;
+		B.block(u, 0, numPlanes, u) = H;
+		B.block(0, u, u, numPlanes) = H.transpose();
+		B.block(u, u, numPlanes, numPlanes) = MatrixXd::Constant(numPlanes, numPlanes, 0);
+	
+		C.block(0,0,u,1) = U;
+		C.block(u,0,numPlanes,1) = V;
+		
+		Y = (B.transpose()*B).inverse() * B.transpose() * C;
+		//cout << "Y=" << Y << "\n\n";
+
+		//Calculate mean value of Y for termination condition
+		mean_Y = 0;
+		for(int i=0; i<(u+numPlanes); i++)
+		{
+			mean_Y = mean_Y + Y(i,0);
+		}
+		mean_Y = mean_Y/(u+numPlanes);
+		//cout << "mean Y=" << mean_Y << "\n\n";
+
+		//Update unknowns
+		
+		bs_params = bs_params + Y.block(0,0,6,1);
+
+		int Yindex = 6;
+		for (int i = 0; i < planeparams.rows(); i++)
+		{
+			for (int j = 0; j < 4; j++)
+			{
+				planeparams(i, j) = Y(Yindex,0);
+				Yindex++;
+			}
+		}
+
+		for (int i = 0; i < scanparams.rows(); i++)
+		{
+			for (int j = 0; j < 6; j++)
+			{
+				scanparams(i, j) = Y(Yindex, 0);
+				Yindex++;
+			}
+		}
+
+	}
 
 
 	// GEOREFERENCE
 	// TODO: Read in LiDAR frame -- or extract frame from full dataset? 
 	MatrixXd lidar_data;
-	char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
-	Read_Mat(lidar_file, lidar_data);
+	//char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
+	//Read_Mat(lidar_file, lidar_data);
 
 	// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
 	// Assumes that lidar_data is all points associated with one frame
