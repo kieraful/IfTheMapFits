@@ -11,6 +11,7 @@
 #include <iomanip> 
 #include <string>
 #include <cmath>  
+#include "LS.h"
 
 
 //PCL includes

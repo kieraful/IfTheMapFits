@@ -11,8 +11,6 @@ bool Read_Lidar_points(char *filename, PointCloudXYZptr cloud)
 			std::cerr << "File could not be opened:\n\t" << filename << endl;
 			return false;
 		}
-
-		std::clog << "File read successful\n";
 	}
 	return true;
 }
@@ -245,7 +243,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	
 	*/
 
-	double percent_cloud = 50;
+	double percent_cloud = 70;
 
 	if (max_planes > 0)
 	{
@@ -261,8 +259,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	vector<Plane> planes;
 	Plane temp_plane;
 	pcl::PCDWriter writer; //writer object for point clouds
-	Eigen::Vector3f search_axis; // Axis to search for planes PERPENDICULAR to
-	double plane_buffer = 22.5*PI / 180;//Degree offset from search plane to allow
+	double plane_buffer = 25.0*(PI / 180.0f);//Degree offset from search plane to allow
 	double size, remaining_p, remaining_pts;
 
 	// Fill in the cloud data
@@ -272,25 +269,15 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 
 	// Create the segmentation object
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
-	// Optional
-	//Set search axis
-	//search_axis << 0, 1, 0; //y axis
-	//seg.setOptimizeCoefficients(true);
-	//seg.setModelType(pcl::SACMODEL_PLANE);
-	//seg.setMethodType(pcl::SAC_RANSAC);
-	//seg.setMaxIterations(500);
-	//seg.setAxis(search_axis);
-	//seg.setEpsAngle(plane_buffer);
-	//seg.setDistanceThreshold(0.01);
 
 	seg.setOptimizeCoefficients(true);
 	seg.setModelType(pcl::SACMODEL_PARALLEL_PLANE); //only want points perpendicular to a given axis
 	seg.setMaxIterations(1000);
 	seg.setMethodType(pcl::SAC_RANSAC);
 	seg.setDistanceThreshold(0.15); // keep points within 0.15 m of the plane
-	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //x axis
+	Eigen::Vector3f axis = Eigen::Vector3f(0.0, 0.0, 1.0); //z axis
 	seg.setAxis(axis);
-	seg.setEpsAngle(20.0f * (PI / 180.0f)); // plane can be within 30 degrees of X-Z plane
+	seg.setEpsAngle(plane_buffer); // plane can be within 30 degrees of X-Z plane
 	
 
 	// Create the filtering object
@@ -318,7 +305,6 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 		remaining_p = (1 - (double)in_cloud->points.size() / (double)nr_points)*100; //remaining percent
 		remaining_pts = nr_points - in_cloud->points.size(); //remaining points
 
-		//cout << "\n all pts: " << nr_points << " remaining percent: " << remaining_p << " Planed pts: " << remaining_pts;
 		fprintf(stdout, "\tSuccessfully fitted %0.3f %% of cloud. %0.1f points and %i planes\r", remaining_p, remaining_pts, n_planes);
 
 
@@ -333,8 +319,6 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 		extracter.setIndices(inliers);
 		extracter.setNegative(false);
 		extracter.filter(*cloud_p);
-		//cerr << "The plane " << n_planes <<" has " << cloud_p->width * cloud_p->height << " data points." << endl;
-		//cerr << "\tThe plane has coefficiants: a= " << temp_plane.a1 << " b= " << temp_plane.a2 << " c= " << temp_plane.a3 << " \n";
 
 		//Save to plane struct
 		temp_plane.points_on_plane = cloud_p;

@@ -1,5 +1,5 @@
 #include "CalibrationFuntions.h"
-#include "BAFunctions.h"
+//#include "BAFunctions.h"
 
 
 int main() {
@@ -30,13 +30,13 @@ int main() {
 
 	//Initialize variables 
 	vector<char *> pcd_files;
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1_b.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2_b.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
 
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
-	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
+	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
 	//char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
@@ -82,12 +82,13 @@ int main() {
 
 
 		// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
+		clog << "Filtering Dataset....";
 		filter_and_downsample(Novatel_cloud, 0.1f);
 
 
 		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-		planes = FitPlanes(Novatel_cloud, 20);
+		planes = FitPlanes(Novatel_cloud);
 
 
 
@@ -104,11 +105,11 @@ int main() {
 
 		for (int i = 0; i < planes.size(); i++) {
 			remove_outliers(planes[i].points_on_plane, 100, 1);
-			filter_and_downsample(planes[i].points_on_plane, 1.0f);
+			filter_and_downsample(planes[i].points_on_plane, 0.5f);
 		}
 
 		//save planes
-		//save_planes(planes);
+		save_planes(planes);
 
 
 		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
@@ -160,12 +161,15 @@ int main() {
 	create_bundle_observations(scenes, unique_planes, point_details, scene_details, plane_details);
 
 	clog << "\n---------------------------Scene---------------------\n";
+	clog << "\tThere are " << scene_details.size() << " scenes";
 	print_vector(scene_details);
 
 	clog << "\n---------------------------Plane---------------------\n";
+	clog << "\tThere are " << plane_details.size() << " planes";
 	print_vector(plane_details);
 
 	clog << "\n---------------------------Points---------------------\n";
+	clog << "\tThere are " << point_details.size() << " points";
 	print_vector(point_details);
 
 	
@@ -270,7 +274,7 @@ int main() {
 		}
 
 	}
-
+	
 
 	// GEOREFERENCE
 	// TODO: Read in LiDAR frame -- or extract frame from full dataset? 
