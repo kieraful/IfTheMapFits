@@ -63,7 +63,7 @@ int main() {
 																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
 	//Read in EOP's for each orientation
 	MatrixXd Orientation_EOP;
-	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
+	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\CrossEOPs_Edmond.txt", Orientation_EOP);
 
 	//for (int i = 0; i < pcd_files.size(); i++)
 	//{

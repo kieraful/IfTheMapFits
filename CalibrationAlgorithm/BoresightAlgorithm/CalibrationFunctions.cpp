@@ -907,8 +907,8 @@ void plane_to_global(Plane &p1, Orientation O1)
 
 	//Find new plane parameters
 	target_rot_vec = target_plane_vec * R_del;
-	//plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
-	plane_dist = p1.b; //DEBUG
+	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
+	//plane_dist = p1.b; //DEBUG
 
 
 	p1.a1 = target_rot_vec(0);
