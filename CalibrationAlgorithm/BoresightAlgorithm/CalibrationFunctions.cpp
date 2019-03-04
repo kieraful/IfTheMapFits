@@ -622,7 +622,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 10; // Planes should definitely not be more than 10 meters away from each other
+			best_dist = 40; // Planes should definitely not be more than 10 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
@@ -630,12 +630,13 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				for (int m = 0; m < candidates.size(); m++)
 				{
 
-					dist_temp = abs(unique.unique_planes[candidates[m]].b) - abs(scenes[i].planes[j].b);
+					//dist_temp = check_plane_dists(unique.reference_orientations[m], scenes[i].scene_orientation, unique.unique_planes[m], scenes[i].planes[j]);
+					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
 
 					if (dist_temp < best_dist)
 					{
 						//This is the best plane so far
-						best_dist = dist_temp;
+						best_dist = abs(dist_temp);
 						best_plane = candidates[m]; // save the base plane index
 					}
 				}
@@ -770,7 +771,7 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 	bool result = false;
 	double d_base, d_target;
-	double x1, x2, y1, y2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
+	double x1, x2, y1, y2,z1, z2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
 
 
 	d_base = abs(plane_base.b); // Distance from origin in base scene
@@ -781,11 +782,13 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	y1 = orient_base.Y;
 	x2 = orient_target.X;
 	y2 = orient_target.X;
+	z1 = orient_base.Z;
+	z2 = orient_target.Z;
 
 	r1 = abs(plane_base.b);
 	r2 = abs(plane_target.b);
 
-	d = sqrt(pow((x1 - x2), 2) + pow(y1 - y2, 2));
+	d = sqrt(pow((x1 - x2), 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
 
 	if (d > (r1 + r2))
 	{
@@ -904,7 +907,9 @@ void plane_to_global(Plane &p1, Orientation O1)
 
 	//Find new plane parameters
 	target_rot_vec = target_plane_vec * R_del;
-	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
+	//plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
+	plane_dist = p1.b; //DEBUG
+
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
