@@ -57,81 +57,104 @@ int main() {
 	MatrixXd GNSS_INS_data;
 	Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
 																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
+	//Read in EOP's for each orientation
+	MatrixXd Orientation_EOP;
+	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\CrossEOPs_noheader.txt", Orientation_EOP);
+
+	//for (int i = 0; i < pcd_files.size(); i++)
+	//{
+	//	clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
+
+	//	Scene temp_scene;
+
+	//	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
+	//	//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
+
+	//	//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
+	//	clog << "Loading file....";
+	//	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
+	//	if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
+	//	{
+	//		clog << "\n\nProgram will close\n";
+	//		return -1;
+	//	};
 
 
-	for (int i = 0; i < pcd_files.size(); i++)
-	{
-		clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
-
-		Scene temp_scene;
-
-		// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
-		//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
-
-		//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
-		clog << "Loading file....";
-		PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
-		if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
-		{
-			clog << "\n\nProgram will close\n";
-			return -1;
-		};
+	//	//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
 
 
-		//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
+	//	// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
+	//	clog << "Filtering Dataset....";
+	//	filter_and_downsample(Novatel_cloud, 0.1f);
 
 
-		// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
-		clog << "Filtering Dataset....";
-		filter_and_downsample(Novatel_cloud, 0.1f);
+	//	//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
 
-
-		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
-
-		planes = FitPlanes(Novatel_cloud);
-
-
-
-		// Find the largest planes
-		std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
-
-		planes.resize(5); //truncate to keep largest planes
+	//	planes = FitPlanes(Novatel_cloud);
 
 
 
-		//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
+	//	// Find the largest planes
+	//	std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
 
-		clog << "\nDownsampling.....\n\n";
-
-		for (int i = 0; i < planes.size(); i++) {
-			remove_outliers(planes[i].points_on_plane, 100, 1);
-			filter_and_downsample(planes[i].points_on_plane, 0.5f);
-		}
-
-		//save planes
-		save_planes(planes);
+	//	planes.resize(5); //truncate to keep largest planes
 
 
-		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
+
+	//	//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
+
+	//	clog << "\nDownsampling.....\n\n";
+
+	//	for (int i = 0; i < planes.size(); i++) {
+	//		remove_outliers(planes[i].points_on_plane, 100, 1);
+	//		filter_and_downsample(planes[i].points_on_plane, 0.5f);
+	//	}
+
+	//	//save planes
+	//	save_planes(planes);
 
 
-		//GNSS
-		temp_scene.scene_orientation.X = 0;
-		temp_scene.scene_orientation.Y = 0;
-		temp_scene.scene_orientation.Z = 0;
-		//INS
-		temp_scene.scene_orientation.omega = 0;
-		temp_scene.scene_orientation.phi = 0;
-		temp_scene.scene_orientation.kappa = 0;
-		
-		// VISUALIZE
-		//visualize_planes(planes);
-		
-		//Add to scene
-		temp_scene.planes = planes;
-		scenes.push_back(temp_scene);
+	//	//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
 
-	}
+
+	//	//GNSS
+	//	temp_scene.scene_orientation.X = Orientation_EOP(i,2);
+	//	temp_scene.scene_orientation.Y = Orientation_EOP(i, 3);
+	//	temp_scene.scene_orientation.Z = Orientation_EOP(i, 4);
+	//	//INS
+	//	temp_scene.scene_orientation.omega = Orientation_EOP(i, 5);
+	//	temp_scene.scene_orientation.phi = Orientation_EOP(i, 6);
+	//	temp_scene.scene_orientation.kappa = Orientation_EOP(i, 7);
+	//	
+
+	//	// DEBUG
+	//	cout << "EOP of ORIENTATION " << i << "\n\n";
+	//	cout << "\tX:\t" << temp_scene.scene_orientation.X << endl;
+	//	cout << "\tY:\t" << temp_scene.scene_orientation.Y << endl;
+	//	cout << "\tZ:\t" << temp_scene.scene_orientation.Z << endl;
+	//	cout << "\tOmega:\t" << temp_scene.scene_orientation.omega << endl;
+	//	cout << "\tPhi:\t" << temp_scene.scene_orientation.phi << endl;
+	//	cout << "\tKappa:\t" << temp_scene.scene_orientation.kappa << endl;
+
+
+	//	// VISUALIZE
+	//	//visualize_planes(planes);
+	//	
+	//	//Add to scene
+	//	temp_scene.planes = planes;
+	//	scenes.push_back(temp_scene);
+
+	//	//DEBUG
+	//	cout << "\n\nPlane equations for " << i << endl;
+	//	for (int k = 0; k < planes.size(); k++)
+	//	{
+	//		cout << "\t" << planes[k].a1 << "\t" << planes[k].a2 << "\t" << planes[k].a3 << "\t" << planes[k].b << endl;
+	//	}
+	//	cout << "-------------------------- END -------------------------\n\n";
+	//}
+
+	// DEBUG INPUT
+	scenes = LoadDebugData();
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
 	clog << "Matching planes....";
@@ -141,6 +164,10 @@ int main() {
 	//Remove less frequent planes. 
 	int num_removed = remove_unfrequent(unique_planes);
 	clog << "Done. Removed " << num_removed << " infrequent planes.\n";
+
+	//DEBUG
+	save_planes(unique_planes.unique_planes);
+
 
 
 	// ------------DEBUG
@@ -160,17 +187,24 @@ int main() {
 
 	create_bundle_observations(scenes, unique_planes, point_details, scene_details, plane_details);
 
+	char * scene_file = "Scene_Details.txt";
+	char * plane_file = "Plane_Details.txt";
+	char * point_file = "Point_Details.txt";
+
 	clog << "\n---------------------------Scene---------------------\n";
-	clog << "\tThere are " << scene_details.size() << " scenes";
+	clog << "\tThere are " << scene_details.size() << " scenes\n";
 	print_vector(scene_details);
+	print_vector(scene_details, scene_file);
 
 	clog << "\n---------------------------Plane---------------------\n";
-	clog << "\tThere are " << plane_details.size() << " planes";
+	clog << "\tThere are " << plane_details.size() << " planes\n";
 	print_vector(plane_details);
+	print_vector(plane_details, plane_file);
 
 	clog << "\n---------------------------Points---------------------\n";
-	clog << "\tThere are " << point_details.size() << " points";
+	clog << "\tThere are " << point_details.size() << " points\n";
 	print_vector(point_details);
+	print_vector(point_details, point_file);
 
 	
 	

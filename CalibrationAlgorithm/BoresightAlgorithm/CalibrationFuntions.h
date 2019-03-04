@@ -58,6 +58,8 @@ typedef pcl::PointCloud<pcl::PointXYZ> PointCloudXYZ;
 
 #define MaxMatSize 10000000
 #define PI 3.14159265358979323846 
+#define sind(x) (sin(fmod((x),360) * M_PI / 180))
+#define cosd(x) (cos(fmod((x),360) * M_PI / 180))
 //#define RAD2DEG = (180.0 / pi)
 
 
@@ -149,7 +151,9 @@ int remove_unfrequent(UniquePlanes &unique, int threshold=3);
 
 void print_vector(vector<RowVector3d> print_vector);
 void print_vector(vector<RowVectorXd> print_vector);
-void print_vector(vector<int> print_vector);
+void print_vector(vector<int> print_vector); 
+void print_vector(vector<RowVectorXd> print_vector, char *filename);
+void print_matrix(MatrixXd print_mat);
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
 
@@ -160,4 +164,10 @@ void plane_to_global(Plane &p1, Orientation O1);
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
 
 void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vector<RowVectorXd> &point_details, vector<RowVectorXd> &scene_details, vector<RowVectorXd> &plane_details);
+
+vector<Scene> LoadDebugData();
+
+vector<Plane> get_debug_planes(char *filename);
+Orientation get_debug_orientation(char *filename);
+
 #endif

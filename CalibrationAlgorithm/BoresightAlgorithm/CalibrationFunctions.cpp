@@ -96,15 +96,15 @@ void Rotation_g2i(double Omega, double Phi, double Kappa, Matrix3b3 & Rot_g2i) {
 	// compute R_g_to_i and return it to the Rot_g2i
 
 	Mw0 << 1, 0, 0,
-		0, cos(Omega), sin(Omega),
-		0, -sin(Omega), cos(Omega);
+		0, cosd(Omega), sind(Omega),
+		0, -sind(Omega), cosd(Omega);
 
-	Mf0 << cos(Phi), 0, -sin(Phi),
+	Mf0 << cosd(Phi), 0, -sind(Phi),
 		0, 1, 0,
-		sin(Phi), 0, cos(Phi);
+		sind(Phi), 0, cosd(Phi);
 
-	Mk0 << cos(Kappa), sin(Kappa), 0,
-		-sin(Kappa), cos(Kappa), 0,
+	Mk0 << cosd(Kappa), sind(Kappa), 0,
+		-sind(Kappa), cosd(Kappa), 0,
 		0, 0, 1;
 
 	Rot_g2i = Mk0 * Mf0*Mw0;
@@ -243,7 +243,7 @@ vector<Plane> FitPlanes(PointCloudXYZptr in_cloud, int max_planes, bool make_fil
 	
 	*/
 
-	double percent_cloud = 70;
+	double percent_cloud = 30;
 
 	if (max_planes > 0)
 	{
@@ -564,7 +564,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp, global_translation;
 	vector<int> candidates;
 	double thresh_orientation = 0.1;
-	double best_dist, dot_prod, dist_temp, plane_dist;
+	double best_dist, dot_prod, dist_temp, plane_dist, best_prod;
 	int best_plane;
 	Plane temp_plane;
 	Orientation temp_orientation;
@@ -582,17 +582,27 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 		unique.reference_orientations.push_back(scenes[0].scene_orientation);
 		unique.frequency.push_back(1);
 
+		//DEBUG
+		cout << "\n\nPlane equations IN GROUND for base plane " << i << endl;
+
+		cout << "\t" << scenes[0].planes[i].a1 << "\t" << scenes[0].planes[i].a2 << "\t" << scenes[0].planes[i].a3 << "\t" << scenes[0].planes[i].b << endl;
+
+		cout << "-------------------------- END -------------------------\n\n";
+
 	}
 
 	for (int i = 1; i < scenes.size(); i++) // For each Target scene i
 	{
 		for (int j = 0; j < scenes[i].planes.size(); j++) // for each plane j in target scene i
 		{
-			// Target plane to matrix
-			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
 			// Change plane orientation to global frame. 
 			plane_to_global(scenes[i].planes[j], scenes[i].scene_orientation);
+			// Target plane to vector
 			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
+			//DEBUG
+			cout << "\n\nPlane equations IN GROUND for " << i << endl;
+			cout << "\t" << scenes[i].planes[j].a1 << "\t" << scenes[i].planes[j].a2 << "\t" << scenes[i].planes[j].a3 << "\t" << scenes[i].planes[j].b << endl;
+			cout << "-------------------------- END -------------------------\n\n";
 
 			candidates.clear();
 			for (int k = 0; k < unique.unique_planes.size();k++) // for each unique plane k
@@ -602,7 +612,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 				base_plane_vec << unique.unique_planes[k].a1, unique.unique_planes[k].a2, unique.unique_planes[k].a3;
 				// ------- Dot Product Check -------------
 				dot_prod = base_plane_vec.dot(target_plane_vec);
-				if (abs(1 - dot_prod) < thresh_orientation)
+				if ((1 - abs(dot_prod)) < thresh_orientation)
 				{
 					candidates.push_back(k); // place candidate unique plane index in vector
 				}
@@ -612,27 +622,15 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 10; // Planes should definitely not be more than 2 meters away from each other
+			best_dist = 10; // Planes should definitely not be more than 10 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
 			{
 				for (int m = 0; m < candidates.size(); m++)
 				{
-					//dist_temp = abs(scenes[i].planes[k].b - unique.unique_planes[candidates[m]].b);
 
-					//clog << "Checking distance!";
-
-					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
-
-					//dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
-					//clog << dist_temp << endl;
-
-					//Debug
-					//cout << "\nDistance : " << dist_temp;
-					//cout << "\tm: " << m;
-					//cout << "\tCandidate[m]" << candidates[m];
-					//--------------
+					dist_temp = abs(unique.unique_planes[candidates[m]].b) - abs(scenes[i].planes[j].b);
 
 					if (dist_temp < best_dist)
 					{
@@ -710,6 +708,35 @@ void print_vector(vector<RowVector3d> print_vector)
 
 }
 
+void print_vector(vector<RowVectorXd> print_vector, char *filename)
+{
+	FILE *fp;
+	fp = fopen(filename, "w");
+
+	for (int i = 0; i < print_vector.size(); i++)
+	{
+		for (int j = 0; j < print_vector[i].cols(); j++)
+		{
+			fprintf(fp, "\t %0.3f ", print_vector[i](j));
+		}
+		fprintf(fp, "\n");
+
+	}
+}
+
+void print_matrix(MatrixXd print_mat)
+{
+
+	for (int i = 0; i < print_mat.rows(); i++)
+	{
+		for (int j = 0; j < print_mat.cols(); j++)
+		{
+			printf("\t %0.3f ", print_mat(i,j));
+		}
+		printf("\n");
+
+	}
+}
 
 void print_vector(vector<RowVectorXd> print_vector)
 {
@@ -848,18 +875,36 @@ scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
 
 void plane_to_global(Plane &p1, Orientation O1)
 {
+	/*
+		OMEGA: -180 to 180
+		PHI: -180 to 180
+		KAPPA: -180 to 180
+
+	*/
 	double del_omega, del_phi, del_kappa, plane_dist;
 	Matrix3b3 R_del;
 	RowVector3d global_translation, target_rot_vec, target_plane_vec;
 
 	target_plane_vec << p1.a1, p1.a2, p1.a3;
 
-	Rotation_g2i(360 - O1.omega, 360 - O1.phi, 90 - O1.kappa, R_del);
+	////Find if values are negative
+	//if (O1.omega < 0) { del_omega = -1 * O1.omega; }
+	//else { del_omega = (360 - O1.omega); }
+	//if (O1.phi < 0) {del_phi = -1 * O1.phi;}
+	//else { del_phi = (360 - O1.phi); }
+	//if (O1.kappa < 0) {	del_kappa = -1 * O1.kappa;}
+	//else { del_kappa = (360 - O1.kappa); }
+
+
+	Rotation_g2i(-1*O1.omega, -1 * O1.phi, abs( O1.kappa), R_del);
+
+	print_matrix(R_del);
+	
 	global_translation << -1 * O1.X, -1 * O1.Y, -1 * O1.Z;
 
 	//Find new plane parameters
 	target_rot_vec = target_plane_vec * R_del;
-	plane_dist = target_plane_vec * global_translation.transpose() + p1.b;
+	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
@@ -888,12 +933,12 @@ MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 			{
 				timestamp = IE_data(j, 0);
 				output(i, 1) = timestamp;
-				output(i, 5) = IE_data(j, 1); //X_GNSS
-				output(i, 6) = IE_data(j, 2); //Y_GNSS
-				output(i, 7) = IE_data(j, 3); //Z_GNSS
-				output(i, 8) = IE_data(j, 7); //roll
-				output(i, 9) = IE_data(j, 8); //pitch
-				output(i, 10) = IE_data(j, 9); //yaw
+output(i, 5) = IE_data(j, 1); //X_GNSS
+output(i, 6) = IE_data(j, 2); //Y_GNSS
+output(i, 7) = IE_data(j, 3); //Z_GNSS
+output(i, 8) = IE_data(j, 7); //roll
+output(i, 9) = IE_data(j, 8); //pitch
+output(i, 10) = IE_data(j, 9); //yaw
 			}
 		}
 
@@ -947,5 +992,148 @@ void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vecto
 	}
 
 
+
+}
+
+vector<Scene> LoadDebugData()
+{
+	Scene temp_scene;
+	vector<Scene> Scenes;
+	vector<char *> pcd_files1;
+	vector<char *> pcd_files2;
+	vector<char *> pcd_files3;
+	char * plane0_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
+	char * plane0_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
+	char * plane0_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_2.pcd";
+	char * plane0_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_3.pcd";
+	char * plane0_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_4.pcd";
+
+	char * plane1_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_0.pcd";
+	char * plane1_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_1.pcd";
+	char * plane1_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
+	char * plane1_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_3.pcd";
+	char * plane1_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_4.pcd";
+
+	char * plane2_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_0.pcd";
+	char * plane2_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_1.pcd";
+	char * plane2_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_2.pcd";
+	char * plane2_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_3.pcd";
+	char * plane2_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_4.pcd";
+
+	char * plane_equations1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\PlaneEquations.txt";
+	char * plane_equations2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\PlaneEquations.txt";
+	char * plane_equations3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\PlaneEquations.txt";
+	
+	char * orientation1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Orientation.txt";
+	char * orientation2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Orientation.txt";
+	char * orientation3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Orientation.txt";
+
+
+
+
+	pcd_files1.push_back(plane0_0);
+	pcd_files1.push_back(plane0_1);
+	pcd_files1.push_back(plane0_2);
+	pcd_files1.push_back(plane0_3);
+	pcd_files1.push_back(plane0_4);
+
+
+	pcd_files2.push_back(plane1_0);
+	pcd_files2.push_back(plane1_1);
+	pcd_files2.push_back(plane1_2);
+	pcd_files2.push_back(plane1_3);
+	pcd_files2.push_back(plane1_4);
+
+
+	pcd_files3.push_back(plane2_0);
+	pcd_files3.push_back(plane2_1);
+	pcd_files3.push_back(plane2_2);
+	pcd_files3.push_back(plane2_3);
+	pcd_files3.push_back(plane2_4);
+
+	temp_scene.planes = get_debug_planes(plane_equations1);
+	temp_scene.scene_orientation = get_debug_orientation(orientation1);
+
+	PointCloudXYZptr plane_cloud(new PointCloudXYZ);
+	for (int i = 0; i < pcd_files1.size(); i++)
+	{
+		if (!Read_Lidar_points(pcd_files1[i], plane_cloud))
+		{
+			cout << "Couldnt get debug data\n";
+		}
+
+		temp_scene.planes[i].points_on_plane = plane_cloud;
+	}
+
+	Scenes.push_back(temp_scene);
+
+	temp_scene.planes = get_debug_planes(plane_equations2);
+	temp_scene.scene_orientation = get_debug_orientation(orientation2);
+
+	for (int i = 0; i < pcd_files2.size(); i++)
+	{
+		if (!Read_Lidar_points(pcd_files2[i], plane_cloud))
+		{
+			cout << "Couldnt get debug data\n";
+		}
+
+		temp_scene.planes[i].points_on_plane = plane_cloud;
+	}
+
+	Scenes.push_back(temp_scene);
+
+	temp_scene.planes = get_debug_planes(plane_equations3);
+	temp_scene.scene_orientation = get_debug_orientation(orientation3);
+
+	for (int i = 0; i < pcd_files3.size(); i++)
+	{
+		if (!Read_Lidar_points(pcd_files3[i], plane_cloud))
+		{
+			cout << "Couldnt get debug data\n";
+		}
+
+		temp_scene.planes[i].points_on_plane = plane_cloud;
+	}
+
+	Scenes.push_back(temp_scene);
+
+	return Scenes;
+}
+
+vector<Plane> get_debug_planes(char *filename)
+{
+	Plane temp_plane;
+	vector<Plane> planes;
+	MatrixXd inmat;
+	Read_Mat(filename, inmat);
+
+	for (int i = 0; i < inmat.rows(); i++)
+	{
+		temp_plane.a1 = inmat(i, 0);
+		temp_plane.a2 = inmat(i, 1);
+		temp_plane.a3 = inmat(i, 2);
+		temp_plane.b = inmat(i, 3);
+		planes.push_back(temp_plane);
+	}
+
+	return planes;
+
+}
+
+
+Orientation get_debug_orientation(char *filename)
+{
+	Orientation temp_o;
+	MatrixXd inmat;
+	Read_Mat(filename, inmat);
+
+	temp_o.X = inmat(0,0);
+	temp_o.Y = inmat(0, 1);
+	temp_o.Z = inmat(0, 2);
+	temp_o.omega = inmat(0, 3);
+	temp_o.phi = inmat(0, 4);
+	temp_o.kappa = inmat(0, 5);
+
+	return temp_o;
 
 }
