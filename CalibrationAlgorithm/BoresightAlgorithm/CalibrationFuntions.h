@@ -46,6 +46,7 @@ typedef Matrix<double, 2, 1> Matrix2b1;
 typedef Matrix<double, Dynamic, 3> Matrixdb3;
 typedef Matrix<double, 3, 3> Matrix3b3;
 typedef Matrix<double, 3, 4> Matrix3b4;
+typedef Matrix<double, 4, 4> Matrix4b4;
 typedef Matrix<double, Dynamic, 2> Matrixdby2;
 typedef Matrix<int, Dynamic, 2> Matrixdby2i;
 
@@ -160,6 +161,8 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
 void plane_to_global(Plane &p1, Orientation O1);
+
+Vector4d rotate_translate_plane(Matrix3b3 R, RowVector3d translation, Plane p1);
 
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
 

@@ -622,7 +622,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 40; // Planes should definitely not be more than 10 meters away from each other
+			best_dist = 10000000; // Planes should definitely not be more than 10 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
@@ -887,6 +887,7 @@ void plane_to_global(Plane &p1, Orientation O1)
 	double del_omega, del_phi, del_kappa, plane_dist;
 	Matrix3b3 R_del;
 	RowVector3d global_translation, target_rot_vec, target_plane_vec;
+	Vector4d full_transformed;
 
 	target_plane_vec << p1.a1, p1.a2, p1.a3;
 
@@ -899,26 +900,45 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//else { del_kappa = (360 - O1.kappa); }
 
 
-	Rotation_g2i(-1*O1.omega, -1 * O1.phi, abs( O1.kappa), R_del);
-
-	print_matrix(R_del);
+	Rotation_g2i(-1*O1.omega, -1 * O1.phi, -( O1.kappa), R_del);
 	
 	global_translation << -1 * O1.X, -1 * O1.Y, -1 * O1.Z;
 
 	//Find new plane parameters
-	target_rot_vec = target_plane_vec * R_del;
-	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;
+	/*target_rot_vec = target_plane_vec * R_del;
+	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;*/
+	
+	full_transformed = rotate_translate_plane(R_del, global_translation, p1);
+
 	//plane_dist = p1.b; //DEBUG
 
 
-	p1.a1 = target_rot_vec(0);
-	p1.a2 = target_rot_vec(1);
-	p1.a3 = target_rot_vec(2);
+	p1.a1 = full_transformed(0);
+	p1.a2 = full_transformed(1);
+	p1.a3 = full_transformed(2);
 
-	p1.b = plane_dist;
+	p1.b = full_transformed(3);
 
 
 }
+
+Vector4d rotate_translate_plane(Matrix3b3 R, RowVector3d translation, Plane p1)
+{
+	Vector4d all_transformed;
+	Matrix4b4 H;
+	RowVector4d plane_equation;
+	plane_equation << p1.a1, p1.a2, p1.a3, p1.b;
+	H(0, 0) = R(0, 0); H(0, 1) = R(0, 1); H(0, 2) = R(0, 2); H(0, 3) = translation(0);
+	H(1, 0) = R(1, 0); H(1, 1) = R(1, 1); H(1, 2) = R(1, 2); H(1, 3) = translation(1);
+	H(2, 0) = R(2, 0); H(2, 1) = R(2, 1); H(2, 2) = R(2, 2); H(2, 3) = translation(2);
+	H(3, 0) = 0;	   H(3, 1) = 0;		  H(3, 2) = 0;		 H(3, 3) = 1;
+
+	all_transformed = H.inverse().transpose() * plane_equation.transpose();
+
+	return all_transformed;
+
+}
+
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 {
 	MatrixXd output;
