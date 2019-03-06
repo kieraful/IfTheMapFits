@@ -590,13 +590,6 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 		unique.reference_orientations.push_back(scenes[0].scene_orientation);
 		unique.frequency.push_back(1);
 
-		//DEBUG
-		cout << "\n\nPlane equations IN GROUND for base plane " << i << endl;
-
-		cout << "\t" << scenes[0].planes[i].a1 << "\t" << scenes[0].planes[i].a2 << "\t" << scenes[0].planes[i].a3 << "\t" << scenes[0].planes[i].b << endl;
-
-		cout << "-------------------------- END -------------------------\n\n";
-
 	}
 
 	for (int i = 1; i < scenes.size(); i++) // For each Target scene i
@@ -607,11 +600,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			plane_to_global(scenes[i].planes[j], scenes[i].scene_orientation);
 			// Target plane to vector
 			target_plane_vec << scenes[i].planes[j].a1, scenes[i].planes[j].a2, scenes[i].planes[j].a3;
-			//DEBUG
-			cout << "\n\nPlane equations IN GROUND for " << i << endl;
-			cout << "\t" << scenes[i].planes[j].a1 << "\t" << scenes[i].planes[j].a2 << "\t" << scenes[i].planes[j].a3 << "\t" << scenes[i].planes[j].b << endl;
-			cout << "-------------------------- END -------------------------\n\n";
-
+			
 			candidates.clear();
 			for (int k = 0; k < unique.unique_planes.size();k++) // for each unique plane k
 			{
@@ -630,23 +619,25 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 40; // Planes should definitely not be more than 40 meters away from each other
+			best_dist = 60; // Planes should definitely not be more than 40 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
 			{
 				for (int m = 0; m < candidates.size(); m++)
 				{
-
 					//dist_temp = check_plane_dists(unique.reference_orientations[m], scenes[i].scene_orientation, unique.unique_planes[m], scenes[i].planes[j]);
 					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
+
 
 					//Azimuth check
 					az_test = check_plane_az(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
 
+
+
 					//dist_temp = max(abs(unique.unique_planes[candidates[m]].b), abs(scenes[i].planes[j].b)) + 
 
-					if (dist_temp < best_dist)
+					if (dist_temp < best_dist && az_test < 50)
 					{
 						//This is the best plane so far
 						best_dist = abs(dist_temp);
@@ -958,11 +949,11 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//Find the distance. This is done by arbitrarily shifting the Global coordinates
 	// so to not have unnecessairily large numbers
 	shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
-	plane_dist = -1*target_rot_vec * shiftdown.transpose() + abs(p1.b);
+	plane_dist = -1*target_rot_vec * shiftdown.transpose() + (p1.b);
 
 	//DEBUG
-	Plane temp_rot_plane = p1;
-	rotate_plane_points(temp_rot_plane, R_del);
+	//Plane temp_rot_plane = p1;
+	//rotate_plane_points(temp_rot_plane, R_del);
 	//save_plane(temp_rot_plane);
 
 	p1.a1 = target_rot_vec(0);
@@ -1009,12 +1000,12 @@ MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data)
 			{
 				timestamp = IE_data(j, 0);
 				output(i, 1) = timestamp;
-output(i, 5) = IE_data(j, 1); //X_GNSS
-output(i, 6) = IE_data(j, 2); //Y_GNSS
-output(i, 7) = IE_data(j, 3); //Z_GNSS
-output(i, 8) = IE_data(j, 7); //roll
-output(i, 9) = IE_data(j, 8); //pitch
-output(i, 10) = IE_data(j, 9); //yaw
+				output(i, 5) = IE_data(j, 1); //X_GNSS
+				output(i, 6) = IE_data(j, 2); //Y_GNSS
+				output(i, 7) = IE_data(j, 3); //Z_GNSS
+				output(i, 8) = IE_data(j, 7); //roll
+				output(i, 9) = IE_data(j, 8); //pitch
+				output(i, 10) = IE_data(j, 9); //yaw
 			}
 		}
 
@@ -1073,8 +1064,8 @@ void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vecto
 
 vector<Scene> LoadDebugData()
 {
-	Scene temp_scene;
-	vector<Scene> Scenes;
+	Scene temp_scene1, temp_scene2, temp_scene3, temp_scene4;
+	vector<Scene> scenes;
 	vector<char *> pcd_files1, pcd_files2, pcd_files3, pcd_files4;
 	char * plane0_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
 	char * plane0_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
@@ -1117,74 +1108,69 @@ vector<Scene> LoadDebugData()
 	pcd_files3.push_back(plane2_1);
 	pcd_files3.push_back(plane2_2);
 
-	pcd_files4.push_back(plane2_0);
-	pcd_files4.push_back(plane2_1);
-	pcd_files4.push_back(plane2_2);
+	pcd_files4.push_back(plane3_0);
+	pcd_files4.push_back(plane3_1);
+	pcd_files4.push_back(plane3_2);
 
 
-	temp_scene.planes = get_debug_planes(plane_equations1);
-	temp_scene.scene_orientation = get_debug_orientation(orientation1);
+	temp_scene1.planes = get_debug_planes(plane_equations1);
+	temp_scene1.scene_orientation = get_debug_orientation(orientation1);
 
-	PointCloudXYZptr plane_cloud(new PointCloudXYZ);
-	for (int i = 0; i < pcd_files1.size(); i++)
-	{
-		if (!Read_Lidar_points(pcd_files1[i], plane_cloud))
-		{
-			cout << "Couldnt get debug data\n";
-		}
+	PointCloudXYZptr plane_cloud1_1(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud1_2(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud1_3(new PointCloudXYZ);
+	Read_Lidar_points(pcd_files1[0], plane_cloud1_1);
+	Read_Lidar_points(pcd_files1[1], plane_cloud1_2);
+	Read_Lidar_points(pcd_files1[2], plane_cloud1_3);
+	temp_scene1.planes[0].points_on_plane = plane_cloud1_1;
+	temp_scene1.planes[1].points_on_plane = plane_cloud1_2;
+	temp_scene1.planes[2].points_on_plane = plane_cloud1_3;
+	scenes.push_back(temp_scene1);
+	//------------------------------------------------------------------
+	temp_scene2.planes = get_debug_planes(plane_equations2);
+	temp_scene2.scene_orientation = get_debug_orientation(orientation2);
 
-		temp_scene.planes[i].points_on_plane = plane_cloud;
-	}
+	PointCloudXYZptr plane_cloud2_1(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud2_2(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud2_3(new PointCloudXYZ);
+	Read_Lidar_points(pcd_files2[0], plane_cloud2_1);
+	Read_Lidar_points(pcd_files2[1], plane_cloud2_2);
+	Read_Lidar_points(pcd_files2[2], plane_cloud2_3);
+	temp_scene2.planes[0].points_on_plane = plane_cloud2_1;
+	temp_scene2.planes[1].points_on_plane = plane_cloud2_2;
+	temp_scene2.planes[2].points_on_plane = plane_cloud2_3;
+	scenes.push_back(temp_scene2);
+	//----------------------------------------------------------------------
+	temp_scene3.planes = get_debug_planes(plane_equations3);
+	temp_scene3.scene_orientation = get_debug_orientation(orientation3);
 
-	Scenes.push_back(temp_scene);
+	PointCloudXYZptr plane_cloud3_1(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud3_2(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud3_3(new PointCloudXYZ);
+	Read_Lidar_points(pcd_files3[0], plane_cloud3_1);
+	Read_Lidar_points(pcd_files3[1], plane_cloud3_2);
+	Read_Lidar_points(pcd_files3[2], plane_cloud3_3);
+	temp_scene3.planes[0].points_on_plane = plane_cloud3_1;
+	temp_scene3.planes[1].points_on_plane = plane_cloud3_2;
+	temp_scene3.planes[2].points_on_plane = plane_cloud3_3;
+	scenes.push_back(temp_scene3);
 
-	temp_scene.planes = get_debug_planes(plane_equations2);
-	temp_scene.scene_orientation = get_debug_orientation(orientation2);
+	//-------------------------------------------------------------------
+	temp_scene4.planes = get_debug_planes(plane_equations4);
+	temp_scene4.scene_orientation = get_debug_orientation(orientation4);
 
-	for (int i = 0; i < pcd_files2.size(); i++)
-	{
-		if (!Read_Lidar_points(pcd_files2[i], plane_cloud))
-		{
-			cout << "Couldnt get debug data\n";
-		}
+	PointCloudXYZptr plane_cloud4_1(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud4_2(new PointCloudXYZ);
+	PointCloudXYZptr plane_cloud4_3(new PointCloudXYZ);
+	Read_Lidar_points(pcd_files4[0], plane_cloud4_1);
+	Read_Lidar_points(pcd_files4[1], plane_cloud4_2);
+	Read_Lidar_points(pcd_files4[2], plane_cloud4_3);
+	temp_scene4.planes[0].points_on_plane = plane_cloud4_1;
+	temp_scene4.planes[1].points_on_plane = plane_cloud4_2;
+	temp_scene4.planes[2].points_on_plane = plane_cloud4_3;
+	scenes.push_back(temp_scene4);
 
-		temp_scene.planes[i].points_on_plane = plane_cloud;
-	}
-
-	Scenes.push_back(temp_scene);
-
-	temp_scene.planes = get_debug_planes(plane_equations3);
-	temp_scene.scene_orientation = get_debug_orientation(orientation3);
-
-	for (int i = 0; i < pcd_files3.size(); i++)
-	{
-		if (!Read_Lidar_points(pcd_files3[i], plane_cloud))
-		{
-			cout << "Couldnt get debug data\n";
-		}
-
-		temp_scene.planes[i].points_on_plane = plane_cloud;
-	}
-
-	Scenes.push_back(temp_scene);
-
-
-	temp_scene.planes = get_debug_planes(plane_equations4);
-	temp_scene.scene_orientation = get_debug_orientation(orientation4);
-
-	for (int i = 0; i < pcd_files4.size(); i++)
-	{
-		if (!Read_Lidar_points(pcd_files4[i], plane_cloud))
-		{
-			cout << "Couldnt get debug data\n";
-		}
-
-		temp_scene.planes[i].points_on_plane = plane_cloud;
-	}
-
-	Scenes.push_back(temp_scene);
-
-	return Scenes;
+	return scenes;
 }
 
 vector<Plane> get_debug_planes(char *filename)
@@ -1235,8 +1221,12 @@ double check_plane_az(Orientation base_O, Orientation target_O, Plane plane_base
 	base_az = base_az*RAD2DEG;
 	target_az = target_az*RAD2DEG;
 
-	base_az = base_az - base_O.kappa; //Change to global
-	target_az = base_az - target_O.kappa; //Change to global
+
+	base_az = base_az + base_O.kappa; //Change to global
+	target_az = target_az + target_O.kappa; //Change to global
+
+	if (base_az > 360) { base_az = base_az - 360; }
+	if (target_az > 360) { target_az = target_az - 360; }
 
 	return abs(target_az - base_az);
 
@@ -1246,12 +1236,30 @@ double check_plane_az(Orientation base_O, Orientation target_O, Plane plane_base
 
 double get_plane_az(Plane test_plane)
 {
-	double az = 0;
+	// | The azimuth of a point is defined as the clockwise angle from north. In this case the y axis
+
+	double temp_az, sumx, sumy, meanx, meany;
+	double az_accumulate = 0;
+	sumx = 0;
+	sumy = 0;
 	for (int i = 0; i < test_plane.points_on_plane->size(); i++)
 	{
-		az = az + atan2(test_plane.points_on_plane->points[i].y, test_plane.points_on_plane->points[i].x);
-	}
-	az = az / test_plane.points_on_plane->size();
 
-	return az;
+		sumx = sumx + test_plane.points_on_plane->points[i].x;
+		sumy = sumy + test_plane.points_on_plane->points[i].y;
+
+		//temp_az = atan2(test_plane.points_on_plane->points[i].x, test_plane.points_on_plane->points[i].y);
+		//if (temp_az < 0) { temp_az = (360*1/RAD2DEG) + temp_az; }
+		//az_accumulate = az_accumulate + temp_az;
+		////clog << "The azimuth of point " << i << ": x " << test_plane.points_on_plane->points[i].x << " y: " << test_plane.points_on_plane->points[i].y << "  is: " << temp_az*RAD2DEG << endl;
+	}
+	meanx = sumx / test_plane.points_on_plane->size();
+	meany = sumy / test_plane.points_on_plane->size();
+
+
+	temp_az = atan2(meanx , meany);
+
+	if (temp_az < 0) { temp_az = (360 * 1 / RAD2DEG) + temp_az; }
+
+	return temp_az;
 }

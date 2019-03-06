@@ -181,16 +181,11 @@ Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Dat
 	clog << "Matching planes....";
 	// TODO: MATCH PLANES
 	UniquePlanes unique_planes = match_scenes(scenes);
-
-	clog << "\n\nMapping vector PRE REMOVE:\n";
-	print_vector(unique_planes.mapping_vec);
 	clog << "Done.\nRemoving unfrequent planes....";
 	//Remove less frequent planes. 
 	int num_removed = remove_unfrequent(unique_planes);
 	clog << "Done. Removed " << num_removed << " infrequent planes.\n";
 
-	//DEBUG
-	save_planes(unique_planes.unique_planes);
 
 
 
