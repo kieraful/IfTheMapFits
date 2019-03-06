@@ -140,6 +140,8 @@ bool sort_cloud(Plane plane_1, Plane plan_2);
 
 bool sort_planes(Vector3d vec_1, Vector3d vec_2);
 
+void save_plane(Plane save_plane, int identifyer = 1);
+
 void save_planes(vector<Plane> planes);
 
 void remove_outliers(PointCloudXYZptr &input_cloud, double search_n=50, double std_mul=1.0);
@@ -160,11 +162,17 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 
 void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
+void rotate_plane_points(Plane & plane_target, Matrix3b3 R);
+
 void plane_to_global(Plane &p1, Orientation O1);
 
 Vector4d rotate_translate_plane(Matrix3b3 R, RowVector3d translation, Plane p1);
 
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
+
+double check_plane_az(Orientation base_O, Orientation target_O, Plane plane_base, Plane plane_target);
+
+double get_plane_az(Plane test_plane);
 
 void create_bundle_observations(vector<Scene> scenes, UniquePlanes unique, vector<RowVectorXd> &point_details, vector<RowVectorXd> &scene_details, vector<RowVectorXd> &plane_details);
 

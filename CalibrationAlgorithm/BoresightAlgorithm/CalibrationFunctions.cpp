@@ -461,17 +461,25 @@ void visualize_cloud(PointCloudXYZptr cloud)
 
 }
 
+void save_plane(Plane save_plane, int identifyer)
+{
+	pcl::PCDWriter writer;
+	std::stringstream ss;
+	ss << "Cloud_Plane_" << identifyer << ".pcd";
+	writer.write<pcl::PointXYZ>(ss.str(), *save_plane.points_on_plane, false);
+}
+
 void save_planes(vector<Plane> planes)
 {
 
-	pcl::PCDWriter writer; //writer object for point clouds
+	//pcl::PCDWriter writer; //writer object for point clouds
 
 	for (int i = 0; i < planes.size(); i++)
 	{
-		std::stringstream ss;
-		ss << "Cloud_Plane_" << i << ".pcd";
-		writer.write<pcl::PointXYZ>(ss.str(), *planes[i].points_on_plane, false);
-
+		//std::stringstream ss;
+		//ss << "Cloud_Plane_" << i << ".pcd";
+		//writer.write<pcl::PointXYZ>(ss.str(), *planes[i].points_on_plane, false);
+		save_plane(planes[i], i);
 	}
 
 }
@@ -564,7 +572,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 	RowVector3d target_plane_vec, base_plane_vec, target_rot_vec, mapping_temp, global_translation;
 	vector<int> candidates;
 	double thresh_orientation = 0.1;
-	double best_dist, dot_prod, dist_temp, plane_dist, best_prod;
+	double best_dist, dot_prod, dist_temp, plane_dist, best_prod, az_test;
 	int best_plane;
 	Plane temp_plane;
 	Orientation temp_orientation;
@@ -632,6 +640,9 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 					//dist_temp = check_plane_dists(unique.reference_orientations[m], scenes[i].scene_orientation, unique.unique_planes[m], scenes[i].planes[j]);
 					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
+
+					//Azimuth check
+					az_test = check_plane_az(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
 
 					//dist_temp = max(abs(unique.unique_planes[candidates[m]].b), abs(scenes[i].planes[j].b)) + 
 
@@ -895,6 +906,21 @@ void rotate_scene(Scene & scene_target, Matrix3b3 R)
 
 }
 
+void rotate_plane_points(Plane & plane_target, Matrix3b3 R)
+{
+	Vector3d plane_vec;
+	//Rotate all point in the plane
+	for (int j = 0; j < plane_target.points_on_plane->points.size(); j++) //each point on that plane
+	{
+		plane_vec << plane_target.points_on_plane->points[j].x, plane_target.points_on_plane->points[j].y, plane_target.points_on_plane->points[j].z;
+		plane_vec = plane_vec.transpose() * R;
+		plane_target.points_on_plane->points[j].x = plane_vec(0);
+		plane_target.points_on_plane->points[j].y = plane_vec(1);
+		plane_target.points_on_plane->points[j].z = plane_vec(2);
+	}
+
+}
+
 
 void plane_to_global(Plane &p1, Orientation O1)
 {
@@ -920,7 +946,7 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//else { del_kappa = (360 - O1.kappa); }
 
 
-	Rotation_g2i(O1.omega, O1.phi, O1.kappa, R_del);
+	Rotation_g2i(-1*O1.omega, -1*O1.phi, -1*O1.kappa, R_del);
 	
 	global_translation << O1.X, O1.Y, O1.Z;
 
@@ -932,8 +958,12 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//Find the distance. This is done by arbitrarily shifting the Global coordinates
 	// so to not have unnecessairily large numbers
 	shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
-	plane_dist = -1*target_rot_vec * shiftdown.transpose() + (p1.b);
+	plane_dist = -1*target_rot_vec * shiftdown.transpose() + abs(p1.b);
 
+	//DEBUG
+	Plane temp_rot_plane = p1;
+	rotate_plane_points(temp_rot_plane, R_del);
+	//save_plane(temp_rot_plane);
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
@@ -1193,4 +1223,35 @@ Orientation get_debug_orientation(char *filename)
 
 	return temp_o;
 
+}
+
+
+double check_plane_az(Orientation base_O, Orientation target_O, Plane plane_base, Plane plane_target)
+{
+	double base_az = get_plane_az(plane_base); //local azimuth (rad)
+	double target_az = get_plane_az(plane_target); //local azimuth (rad)
+	
+	//change to degree
+	base_az = base_az*RAD2DEG;
+	target_az = target_az*RAD2DEG;
+
+	base_az = base_az - base_O.kappa; //Change to global
+	target_az = base_az - target_O.kappa; //Change to global
+
+	return abs(target_az - base_az);
+
+
+}
+
+
+double get_plane_az(Plane test_plane)
+{
+	double az = 0;
+	for (int i = 0; i < test_plane.points_on_plane->size(); i++)
+	{
+		az = az + atan2(test_plane.points_on_plane->points[i].y, test_plane.points_on_plane->points[i].x);
+	}
+	az = az / test_plane.points_on_plane->size();
+
+	return az;
 }
