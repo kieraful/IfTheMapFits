@@ -16,148 +16,163 @@ int main() {
 	fprintf(stdout, "\n\tThe purpose of this program is to compute the Boresight calibration parameters of \n");
 	fprintf(stdout, "\ta system with GNSS/INS/LiDAR sensors \n\n\n");
 	
-	fprintf(stdout, "    ___________________         \n");
-	fprintf(stdout, "   |,-----.,-----.,---.\        \n");
-	fprintf(stdout, "   ||     ||     ||    \\       \n");
-	fprintf(stdout, "   |`-----'|-----||-----\`----. \n");
-	fprintf(stdout, "   [       |    -||-   _|    (| \n");
-	fprintf(stdout, "   [  ,--. |_____||___/.--.   | \n");
-	fprintf(stdout, "   =-(( `))-----------(( `))-== \n");
-	fprintf(stdout, "      `--'             `--'     \n");
+fprintf(stdout, "    ___________________         \n");
+fprintf(stdout, "   |,-----.,-----.,---.\        \n");
+fprintf(stdout, "   ||     ||     ||    \\       \n");
+fprintf(stdout, "   |`-----'|-----||-----\`----. \n");
+fprintf(stdout, "   [       |    -||-   _|    (| \n");
+fprintf(stdout, "   [  ,--. |_____||___/.--.   | \n");
+fprintf(stdout, "   =-(( `))-----------(( `))-== \n");
+fprintf(stdout, "      `--'             `--'     \n");
 
 
-	fprintf(stdout, "\n---------------------------------------------------------------------------------------\n");
+fprintf(stdout, "\n---------------------------------------------------------------------------------------\n");
 
-	//Initialize variables 
-	vector<char *> pcd_files;
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1_b.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2_b.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
+//Initialize variables 
+vector<char *> pcd_files;
+char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1_b.pcd";
+char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2_b.pcd";
+char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
+char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation4_b.pcd";
 
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
-	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation2_b.pcd";
-	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation3_b.pcd";
+//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
+//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation2_b.pcd";
+//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation3_b.pcd";
 
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
+//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
-	//char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
-	//char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+//char * file1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
+//char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 
-	pcd_files.push_back(file1); //vector of input files
-	pcd_files.push_back(file2);
-	pcd_files.push_back(file3);
+//pcd_files.push_back(file1); //vector of input files
+//pcd_files.push_back(file2);
+//pcd_files.push_back(file3);
+pcd_files.push_back(file4);
 
-	vector<Plane> planes;
-	vector<Scene> scenes;
+vector<Plane> planes;
+vector<Scene> scenes;
 
-	Orientation base_orientation;
+Orientation base_orientation;
 
-	Matrix3b3 R_del;
+Matrix3b3 R_del;
 
-	//Read in IE output and save to matrix
-	MatrixXd GNSS_INS_data;
-	Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
-																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
-	//Read in EOP's for each orientation
-	MatrixXd Orientation_EOP;
-	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\CrossEOPs_Edmond.txt", Orientation_EOP);
-	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
-
-
-	//for (int i = 0; i < pcd_files.size(); i++)
-	//{
-	//	clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
-
-	//	Scene temp_scene;
-
-	//	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
-	//	//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
-
-	//	//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
-	//	clog << "Loading file....";
-	//	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
-	//	if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
-	//	{
-	//		clog << "\n\nProgram will close\n";
-	//		return -1;
-	//	};
+//Read in IE output and save to matrix
+MatrixXd GNSS_INS_data;
+Read_Mat("LiDAR_Georeferencing_Output_noheader.txt", GNSS_INS_data); //This is already done before the loop - is this necessary?
+																	 //Read_Mat("Orientation.txt", GNSS_INS_data);
+//Read in EOP's for each orientation
+MatrixXd Orientation_EOP;
+Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
+//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
 
 
-	//	//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
-
-
-	//	// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
-	//	clog << "Filtering Dataset....";
-	//	filter_and_downsample(Novatel_cloud, 0.1f);
-
-
-	//	//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
-
-	//	planes = FitPlanes(Novatel_cloud);
-
-
-
-	//	// Find the largest planes
-	//	std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
-
-	//	planes.resize(5); //truncate to keep largest planes
-
-
-
-	//	//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
-
-	//	clog << "\nDownsampling.....\n\n";
-
-	//	for (int i = 0; i < planes.size(); i++) {
-	//		remove_outliers(planes[i].points_on_plane, 100, 1);
-	//		filter_and_downsample(planes[i].points_on_plane, 0.5f);
-	//	}
-
-	//	//save planes
-	//	save_planes(planes);
-
-
-	//	//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
-
-
-	//	//GNSS
-	//	temp_scene.scene_orientation.X = Orientation_EOP(i,2);
-	//	temp_scene.scene_orientation.Y = Orientation_EOP(i, 3);
-	//	temp_scene.scene_orientation.Z = Orientation_EOP(i, 4);
-	//	//INS
-	//	temp_scene.scene_orientation.omega = Orientation_EOP(i, 5);
-	//	temp_scene.scene_orientation.phi = Orientation_EOP(i, 6);
-	//	temp_scene.scene_orientation.kappa = Orientation_EOP(i, 7);
-	//	
-
-	//	// DEBUG
-	//	cout << "EOP of ORIENTATION " << i << "\n\n";
-	//	cout << "\tX:\t" << temp_scene.scene_orientation.X << endl;
-	//	cout << "\tY:\t" << temp_scene.scene_orientation.Y << endl;
-	//	cout << "\tZ:\t" << temp_scene.scene_orientation.Z << endl;
-	//	cout << "\tOmega:\t" << temp_scene.scene_orientation.omega << endl;
-	//	cout << "\tPhi:\t" << temp_scene.scene_orientation.phi << endl;
-	//	cout << "\tKappa:\t" << temp_scene.scene_orientation.kappa << endl;
-
-
-	//	// VISUALIZE
-	//	//visualize_planes(planes);
-	//	
-	//	//Add to scene
-	//	temp_scene.planes = planes;
-	//	scenes.push_back(temp_scene);
-
-	//	//DEBUG
-	//	cout << "\n\nPlane equations for " << i << endl;
-	//	for (int k = 0; k < planes.size(); k++)
-	//	{
-	//		cout << "\t" << planes[k].a1 << "\t" << planes[k].a2 << "\t" << planes[k].a3 << "\t" << planes[k].b << endl;
-	//	}
-	//	cout << "-------------------------- END -------------------------\n\n";
-	//}
+//for (int i = 0; i < pcd_files.size(); i++)
+//{
+//	clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
+//
+//	//Clear vector of planes
+//	planes.clear();
+//
+//	Scene temp_scene;
+//
+//	// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
+//	//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
+//
+//	//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
+//	clog << "Loading file....";
+//	PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
+//	if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
+//	{
+//		clog << "\n\nProgram will close\n";
+//		return -1;
+//	};
+//
+//
+//	//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
+//
+//
+//	// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
+//	clog << "Filtering Dataset....";
+//	filter_and_downsample(Novatel_cloud, 0.1f);
+//
+//
+//	//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
+//
+//	planes = FitPlanes(Novatel_cloud);
+//
+//
+//
+//	// Find the largest planes
+//	std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
+//
+//	planes.resize(5); //truncate to keep largest planes
+//
+//
+//
+//	//clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
+//
+//	clog << "\nDownsampling.....\n\n";
+//
+//	for (int i = 0; i < planes.size(); i++) {
+//		remove_outliers(planes[i].points_on_plane, 100, 1);
+//		filter_and_downsample(planes[i].points_on_plane, 0.5f);
+//	}
+//	//Remove Small Planes
+//	int removed = 0;
+//	for (int i = planes.size()-1; i >= 0; i--)
+//	{
+//		clog << "Cloud size: " << planes[i].points_on_plane->size() << endl;
+//		if (planes[i].points_on_plane->size() < 250) {
+//			planes.erase(planes.begin() + i); //Too few points
+//			clog << "removed. Too small\n";
+//		}
+//	}
+//
+//		//save planes
+//		save_planes(planes);
+//
+//
+//		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
+//
+//
+//		//GNSS
+//		temp_scene.scene_orientation.X = Orientation_EOP(i,2);
+//		temp_scene.scene_orientation.Y = Orientation_EOP(i, 3);
+//		temp_scene.scene_orientation.Z = Orientation_EOP(i, 4);
+//		//INS
+//		temp_scene.scene_orientation.omega = Orientation_EOP(i, 5);
+//		temp_scene.scene_orientation.phi = Orientation_EOP(i, 6);
+//		temp_scene.scene_orientation.kappa = Orientation_EOP(i, 7);
+//		
+//
+//		// DEBUG
+//		cout << "EOP of ORIENTATION " << i << "\n\n";
+//		cout << "\tX:\t" << temp_scene.scene_orientation.X << endl;
+//		cout << "\tY:\t" << temp_scene.scene_orientation.Y << endl;
+//		cout << "\tZ:\t" << temp_scene.scene_orientation.Z << endl;
+//		cout << "\tOmega:\t" << temp_scene.scene_orientation.omega << endl;
+//		cout << "\tPhi:\t" << temp_scene.scene_orientation.phi << endl;
+//		cout << "\tKappa:\t" << temp_scene.scene_orientation.kappa << endl;
+//
+//
+//		// VISUALIZE
+//		//visualize_planes(planes);
+//		
+//		//Add to scene
+//		temp_scene.planes = planes;
+//		scenes.push_back(temp_scene);
+//
+//		//DEBUG
+//		cout << "\n\nPlane equations for " << i << endl;
+//		for (int k = 0; k < planes.size(); k++)
+//		{
+//			cout << "\t" << planes[k].a1 << "\t" << planes[k].a2 << "\t" << planes[k].a3 << "\t" << planes[k].b << endl;
+//		}
+//		cout << "-------------------------- END -------------------------\n\n";
+//	}
 
 	// DEBUG INPUT
 	scenes = LoadDebugData();
@@ -166,6 +181,9 @@ int main() {
 	clog << "Matching planes....";
 	// TODO: MATCH PLANES
 	UniquePlanes unique_planes = match_scenes(scenes);
+
+	clog << "\n\nMapping vector PRE REMOVE:\n";
+	print_vector(unique_planes.mapping_vec);
 	clog << "Done.\nRemoving unfrequent planes....";
 	//Remove less frequent planes. 
 	int num_removed = remove_unfrequent(unique_planes);
@@ -180,7 +198,7 @@ int main() {
 	clog << "\nNumber of planes:\t" << unique_planes.unique_planes.size() << endl;
 	clog << "\Frequency vector:\n";
 	print_vector(unique_planes.frequency);
-	clog << "\nMapping vector:\n";
+	clog << "\nMapping vector POST REMOVE:\n";
 	print_vector(unique_planes.mapping_vec);
 
 	// -----------------

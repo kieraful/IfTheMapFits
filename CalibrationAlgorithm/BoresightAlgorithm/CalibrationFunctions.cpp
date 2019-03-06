@@ -622,7 +622,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 10000000; // Planes should definitely not be more than 10 meters away from each other
+			best_dist = 40; // Planes should definitely not be more than 40 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
@@ -632,6 +632,8 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 					//dist_temp = check_plane_dists(unique.reference_orientations[m], scenes[i].scene_orientation, unique.unique_planes[m], scenes[i].planes[j]);
 					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
+
+					//dist_temp = max(abs(unique.unique_planes[candidates[m]].b), abs(scenes[i].planes[j].b)) + 
 
 					if (dist_temp < best_dist)
 					{
@@ -766,73 +768,91 @@ void print_vector(vector<int> print_vector)
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
 {
-	// Checks the distance between two planes to see if they are in fact the same plane
-	// Done by finding circle intersection, and if it satisfies the base plane equation. 
-
-	bool result = false;
-	double d_base, d_target;
-	double x1, x2, y1, y2,z1, z2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
-
-
-	d_base = abs(plane_base.b); // Distance from origin in base scene
-	d_target = abs(plane_target.b); // Distance from origin in target scene
-
-	//find intersection points
-	x1 = orient_base.X;
-	y1 = orient_base.Y;
-	x2 = orient_target.X;
-	y2 = orient_target.X;
-	z1 = orient_base.Z;
-	z2 = orient_target.Z;
-
-	r1 = abs(plane_base.b);
-	r2 = abs(plane_target.b);
-
-	d = sqrt(pow((x1 - x2), 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
-
-	if (d > (r1 + r2))
-	{
-		//Does not intersect. Not the right plane. 
-		check1 = 100;
-		check2 = 100;
-
-	}
-	else if (d + min(r1, r2) <= max(r1, r2))
-	{
-
-		// One is in other
-		//TODO: Find closest point
-
-		check1 = abs(r1 - r2 - d);
-		check2 = 100;
+	
+	//Change to global distance. 
+	Vector3d base_plane, target_plane, target_translation, base_translation;
+	base_plane << plane_base.a1, plane_base.a2, plane_base.a3; //In Ground
+	target_plane << plane_target.a1, plane_target.a2, plane_target.a3; // In Ground
+	base_translation << orient_base.X, orient_base.Y, orient_base.Z; //EOP of base scene
+	target_translation << orient_target.X, orient_target.Y, orient_target.Z; //EOP of target scene
+	double d1_glob = -1 * target_plane.transpose()*base_translation + abs(plane_base.b); //Distance to plane in target scene
+	double d2_glob = -1 * target_plane.transpose()*target_translation + abs(plane_target.b); //Distance to plane in target scene
 
 
-
-	}
-
-	else
-	{
-		a = (pow(r1, 2) - pow(r2, 2) + pow(d, 2)) / (2 * d);
-		h = sqrt(pow(r1, 2) - pow(a, 2));
-
-		px = x1 + (a*(x2 - x1)) / d;
-		py = y1 + (a*(y2 - y1)) / d;
-
-		int1x = px + (h*(y2 - y1)) / d;
-		int1y = py - (h*(x2 - x1)) / d;
-
-		int2x = px - (h*(y2 - y1)) / d;
-		int2y = py + (h*(x2 - x1)) / d;
+	return abs(abs(d2_glob) - abs(d1_glob));
 
 
-		// Now we have the intersection. Check if either one lies on the plane. 
-		check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
-		check2 = abs(plane_base.a1*int2x + plane_base.a2*int2x + plane_base.a3*orient_target.Z - plane_base.b);
-
-	}
-
-	return min(check1, check2);
 }
+
+//double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
+//{
+//	// Checks the distance between two planes to see if they are in fact the same plane
+//	// Done by finding circle intersection, and if it satisfies the base plane equation. 
+//
+//	bool result = false;
+//	double d_base, d_target;
+//	double x1, x2, y1, y2,z1, z2, r1, r2, d, a, h, px, py, int1x, int1y, int2x, int2y, check1, check2;
+//
+//
+//	d_base = abs(plane_base.b); // Distance from origin in base scene
+//	d_target = abs(plane_target.b); // Distance from origin in target scene
+//
+//	//find intersection points
+//	x1 = orient_base.X;
+//	y1 = orient_base.Y;
+//	x2 = orient_target.X;
+//	y2 = orient_target.X;
+//	z1 = orient_base.Z;
+//	z2 = orient_target.Z;
+//
+//	r1 = abs(plane_base.b);
+//	r2 = abs(plane_target.b);
+//
+//	d = sqrt(pow((x1 - x2), 2) + pow(y1 - y2, 2) + pow(z1 - z2, 2));
+//
+//	if (d > (r1 + r2))
+//	{
+//		//Does not intersect. Not the right plane. 
+//		check1 = 100;
+//		check2 = 100;
+//
+//	}
+//	else if (d + min(r1, r2) <= max(r1, r2))
+//	{
+//
+//		// One is in other
+//		//TODO: Find closest point
+//
+//		check1 = abs(r1 - r2 - d);
+//		check2 = 100;
+//
+//
+//
+//	}
+//
+//	else
+//	{
+//		a = (pow(r1, 2) - pow(r2, 2) + pow(d, 2)) / (2 * d);
+//		h = sqrt(pow(r1, 2) - pow(a, 2));
+//
+//		px = x1 + (a*(x2 - x1)) / d;
+//		py = y1 + (a*(y2 - y1)) / d;
+//
+//		int1x = px + (h*(y2 - y1)) / d;
+//		int1y = py - (h*(x2 - x1)) / d;
+//
+//		int2x = px - (h*(y2 - y1)) / d;
+//		int2y = py + (h*(x2 - x1)) / d;
+//
+//
+//		// Now we have the intersection. Check if either one lies on the plane. 
+//		check1 = abs(plane_base.a1*int1x + plane_base.a2*int1y + plane_base.a3*orient_target.Z - plane_base.b);
+//		check2 = abs(plane_base.a1*int2x + plane_base.a2*int2x + plane_base.a3*orient_target.Z - plane_base.b);
+//
+//	}
+//
+//	return min(check1, check2);
+//}
 
 void rotate_scene(Scene & scene_target, Matrix3b3 R)
 {
@@ -860,11 +880,11 @@ void rotate_scene(Scene & scene_target, Matrix3b3 R)
 			//Rotate all point in the plane
 			for (int j = 0; j < scene_target.planes[i].points_on_plane->points.size(); j++) //each point on that plane
 			{
-plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
-plane_vec = plane_vec * R;
-scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
-scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
-scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
+				plane_vec << scene_target.planes[i].points_on_plane->points[i].x, scene_target.planes[i].points_on_plane->points[i].y, scene_target.planes[i].points_on_plane->points[i].z;
+				plane_vec = plane_vec * R;
+				scene_target.planes[i].points_on_plane->points[i].x = plane_vec(0);
+				scene_target.planes[i].points_on_plane->points[i].y = plane_vec(1);
+				scene_target.planes[i].points_on_plane->points[i].z = plane_vec(2);
 			}
 
 		}
@@ -886,7 +906,7 @@ void plane_to_global(Plane &p1, Orientation O1)
 	*/
 	double del_omega, del_phi, del_kappa, plane_dist;
 	Matrix3b3 R_del;
-	RowVector3d global_translation, target_rot_vec, target_plane_vec;
+	RowVector3d global_translation, target_rot_vec, target_plane_vec, shiftdown;
 	Vector4d full_transformed;
 
 	target_plane_vec << p1.a1, p1.a2, p1.a3;
@@ -900,24 +920,25 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//else { del_kappa = (360 - O1.kappa); }
 
 
-	Rotation_g2i(-1*O1.omega, -1 * O1.phi, -( O1.kappa), R_del);
+	Rotation_g2i(O1.omega, O1.phi, O1.kappa, R_del);
 	
-	global_translation << -1 * O1.X, -1 * O1.Y, -1 * O1.Z;
+	global_translation << O1.X, O1.Y, O1.Z;
 
 	//Find new plane parameters
-	/*target_rot_vec = target_plane_vec * R_del;
-	plane_dist = target_rot_vec * global_translation.transpose() + p1.b;*/
+	target_rot_vec = target_plane_vec * R_del;
 	
-	full_transformed = rotate_translate_plane(R_del, global_translation, p1);
+	//full_transformed = rotate_translate_plane(R_del, global_translation, p1);
 
-	//plane_dist = p1.b; //DEBUG
+	//Find the distance. This is done by arbitrarily shifting the Global coordinates
+	// so to not have unnecessairily large numbers
+	shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
+	plane_dist = -1*target_rot_vec * shiftdown.transpose() + (p1.b);
 
 
-	p1.a1 = full_transformed(0);
-	p1.a2 = full_transformed(1);
-	p1.a3 = full_transformed(2);
-
-	p1.b = full_transformed(3);
+	p1.a1 = target_rot_vec(0);
+	p1.a2 = target_rot_vec(1);
+	p1.a3 = target_rot_vec(2);
+	p1.b = plane_dist;
 
 
 }
@@ -1024,57 +1045,52 @@ vector<Scene> LoadDebugData()
 {
 	Scene temp_scene;
 	vector<Scene> Scenes;
-	vector<char *> pcd_files1;
-	vector<char *> pcd_files2;
-	vector<char *> pcd_files3;
+	vector<char *> pcd_files1, pcd_files2, pcd_files3, pcd_files4;
 	char * plane0_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
 	char * plane0_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
 	char * plane0_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_2.pcd";
-	char * plane0_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_3.pcd";
-	char * plane0_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_4.pcd";
 
 	char * plane1_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_0.pcd";
 	char * plane1_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_1.pcd";
 	char * plane1_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
-	char * plane1_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_3.pcd";
-	char * plane1_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_4.pcd";
 
 	char * plane2_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_0.pcd";
 	char * plane2_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_1.pcd";
 	char * plane2_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_2.pcd";
-	char * plane2_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_3.pcd";
-	char * plane2_4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_4.pcd";
+
+	char * plane3_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Cloud_Plane_0.pcd";
+	char * plane3_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Cloud_Plane_1.pcd";
+	char * plane3_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Cloud_Plane_2.pcd";
 
 	char * plane_equations1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\PlaneEquations.txt";
 	char * plane_equations2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\PlaneEquations.txt";
 	char * plane_equations3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\PlaneEquations.txt";
+	char * plane_equations4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\PlaneEquations.txt";
 	
 	char * orientation1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Orientation.txt";
 	char * orientation2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Orientation.txt";
 	char * orientation3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Orientation.txt";
-
-
+	char * orientation4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Orientation.txt";
 
 
 	pcd_files1.push_back(plane0_0);
 	pcd_files1.push_back(plane0_1);
 	pcd_files1.push_back(plane0_2);
-	pcd_files1.push_back(plane0_3);
-	pcd_files1.push_back(plane0_4);
 
 
 	pcd_files2.push_back(plane1_0);
 	pcd_files2.push_back(plane1_1);
 	pcd_files2.push_back(plane1_2);
-	pcd_files2.push_back(plane1_3);
-	pcd_files2.push_back(plane1_4);
 
 
 	pcd_files3.push_back(plane2_0);
 	pcd_files3.push_back(plane2_1);
 	pcd_files3.push_back(plane2_2);
-	pcd_files3.push_back(plane2_3);
-	pcd_files3.push_back(plane2_4);
+
+	pcd_files4.push_back(plane2_0);
+	pcd_files4.push_back(plane2_1);
+	pcd_files4.push_back(plane2_2);
+
 
 	temp_scene.planes = get_debug_planes(plane_equations1);
 	temp_scene.scene_orientation = get_debug_orientation(orientation1);
@@ -1113,6 +1129,22 @@ vector<Scene> LoadDebugData()
 	for (int i = 0; i < pcd_files3.size(); i++)
 	{
 		if (!Read_Lidar_points(pcd_files3[i], plane_cloud))
+		{
+			cout << "Couldnt get debug data\n";
+		}
+
+		temp_scene.planes[i].points_on_plane = plane_cloud;
+	}
+
+	Scenes.push_back(temp_scene);
+
+
+	temp_scene.planes = get_debug_planes(plane_equations4);
+	temp_scene.scene_orientation = get_debug_orientation(orientation4);
+
+	for (int i = 0; i < pcd_files4.size(); i++)
+	{
+		if (!Read_Lidar_points(pcd_files4[i], plane_cloud))
 		{
 			cout << "Couldnt get debug data\n";
 		}

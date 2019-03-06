@@ -5,11 +5,12 @@
 //Function to fill a matrix with info from vector of vectors
 void vec2mat(vector<RowVectorXd>& vec, MatrixXd& mat, int cols)
 {
+	mat = MatrixXd(vec.size(), cols);
 	for(int i=0; i<vec.size(); i++)
 	{
 		for(int j=0; j<cols; j++)
 		{
-			mat(i,j)=vec[i][j];			
+			mat(i,j)=vec[i](j);			
 		}
 	}
 	
