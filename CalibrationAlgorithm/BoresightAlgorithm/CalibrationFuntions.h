@@ -160,6 +160,8 @@ void print_matrix(MatrixXd print_mat);
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
 
+vector<Scene> load_scenes(vector<char*> pcd_files, MatrixXd Orientation_EOP);
+
 void rotate_scene(Scene & scene_target, Matrix3b3 R);
 
 void rotate_plane_points(Plane & plane_target, Matrix3b3 R);

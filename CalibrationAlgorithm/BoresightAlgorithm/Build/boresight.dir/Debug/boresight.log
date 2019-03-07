@@ -25,9 +25,10 @@ C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/sample_consensus/model_types.h(99
 ..\CalibrationFunctions.cpp(578): warning C4101: 'temp_orientation': unreferenced local variable
 ..\CalibrationFunctions.cpp(719): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   C:\Program Files (x86)\Windows Kits\10\Include\10.0.15063.0\ucrt\stdio.h(207): note: see declaration of 'fopen'
-..\CalibrationFunctions.cpp(924): warning C4101: 'del_omega': unreferenced local variable
-..\CalibrationFunctions.cpp(924): warning C4101: 'del_kappa': unreferenced local variable
-..\CalibrationFunctions.cpp(924): warning C4101: 'del_phi': unreferenced local variable
+..\CalibrationFunctions.cpp(973): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+..\CalibrationFunctions.cpp(1038): warning C4101: 'del_omega': unreferenced local variable
+..\CalibrationFunctions.cpp(1038): warning C4101: 'del_kappa': unreferenced local variable
+..\CalibrationFunctions.cpp(1038): warning C4101: 'del_phi': unreferenced local variable
 C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(549): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/impl/point_cloud_color_handlers.hpp(525): note: while compiling class template member function 'bool pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>::getColor(vtkSmartPointer<vtkDataArray> &) const'
   C:\Program Files\PCL 1.8.1\include\pcl-1.8\pcl/visualization/pcl_visualizer.h(907): note: see reference to class template instantiation 'pcl::visualization::PointCloudColorHandlerLabelField<pcl::PointXYZL>' being compiled

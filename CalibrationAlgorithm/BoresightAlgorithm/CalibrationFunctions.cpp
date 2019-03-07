@@ -912,6 +912,120 @@ void rotate_plane_points(Plane & plane_target, Matrix3b3 R)
 
 }
 
+vector<Scene> load_scenes(vector<char*> pcd_files, MatrixXd Orientation_EOP)
+{
+
+	vector<Plane> planes;
+	vector<Scene> scenes;
+	for (int i = 0; i < pcd_files.size(); i++)
+	{
+		clog << "\n-------------------------Starting on Scene " << i << "-------------------------------------------------------\n";
+
+		//Clear vector of planes
+		planes.clear();
+
+		Scene temp_scene;
+
+		// ---------------------------------------STEP 1: Load PCD Scene Data-----------------------------------------------------------------------------------------
+		//clog << "\n-------------------------STEP 1: Load PCD Scene Data-------------------------------------------------------\n";
+
+		//std::clog << "Opening file: " << pcd_files[i] << " (can take up to 5 minutes)" << endl;
+		clog << "Loading file....";
+		PointCloudXYZptr Novatel_cloud(new PointCloudXYZ);
+		if (!Read_Lidar_points(pcd_files[i], Novatel_cloud))
+		{
+			clog << "\n\nCheck file " << i << "!!!\n";
+		};
+
+
+		//clog << "\n-------------------------STEP 2: Filter Data-------------------------------------------------------\n";
+
+
+		// Create the filtering object and downsample. (USE SUBSAMPLING INSTEAD)
+		clog << "Filtering Dataset....";
+		filter_and_downsample(Novatel_cloud, 0.1f);
+
+
+		//clog << "\n-------------------------STEP 3: Fit all planes-----------------------------------------------------\n";
+
+		planes = FitPlanes(Novatel_cloud);
+
+
+
+		// Find the largest planes
+		std::sort(planes.begin(), planes.end(), sort_cloud); // sort based off cloud size
+
+		planes.resize(5); //truncate to keep largest planes
+
+
+
+						  //clog << "\n-------------------------STEP 4: Downsample pts on Planes----------------------------------------------------\n";
+
+		clog << "\nDownsampling.....\n\n";
+
+		for (int i = 0; i < planes.size(); i++)
+		{
+			remove_outliers(planes[i].points_on_plane, 100, 1);
+			filter_and_downsample(planes[i].points_on_plane, 0.5f);
+		}
+		//Remove Small Planes
+		int removed = 0;
+		for (int i = planes.size() - 1; i >= 0; i--)
+		{
+			clog << "Cloud size: " << planes[i].points_on_plane->size() << endl;
+			if (planes[i].points_on_plane->size() < 250)
+			{
+				planes.erase(planes.begin() + i); //Too few points
+				clog << "removed. Too small\n";
+			}
+		}
+
+		//save planes
+		save_planes(planes);
+
+
+		//clog << "\n-------------------------STEP 4: Get IE GNSS/INS OBS-----------------------------------------------------\n";
+
+
+		//GNSS
+		temp_scene.scene_orientation.X = Orientation_EOP(i, 2);
+		temp_scene.scene_orientation.Y = Orientation_EOP(i, 3);
+		temp_scene.scene_orientation.Z = Orientation_EOP(i, 4);
+		//INS
+		temp_scene.scene_orientation.omega = Orientation_EOP(i, 5);
+		temp_scene.scene_orientation.phi = Orientation_EOP(i, 6);
+		temp_scene.scene_orientation.kappa = Orientation_EOP(i, 7);
+
+
+		// DEBUG
+		cout << "EOP of ORIENTATION " << i << "\n\n";
+		cout << "\tX:\t" << temp_scene.scene_orientation.X << endl;
+		cout << "\tY:\t" << temp_scene.scene_orientation.Y << endl;
+		cout << "\tZ:\t" << temp_scene.scene_orientation.Z << endl;
+		cout << "\tOmega:\t" << temp_scene.scene_orientation.omega << endl;
+		cout << "\tPhi:\t" << temp_scene.scene_orientation.phi << endl;
+		cout << "\tKappa:\t" << temp_scene.scene_orientation.kappa << endl;
+
+
+		// VISUALIZE
+		//visualize_planes(planes);
+
+		//Add to scene
+		temp_scene.planes = planes;
+		scenes.push_back(temp_scene);
+
+		//DEBUG
+		cout << "\n\nPlane equations for " << i << endl;
+		for (int k = 0; k < planes.size(); k++)
+		{
+			cout << "\t" << planes[k].a1 << "\t" << planes[k].a2 << "\t" << planes[k].a3 << "\t" << planes[k].b << endl;
+		}
+		cout << "-------------------------- END -------------------------\n\n";
+	}
+
+	return scenes;
+
+}
 
 void plane_to_global(Plane &p1, Orientation O1)
 {
@@ -928,33 +1042,17 @@ void plane_to_global(Plane &p1, Orientation O1)
 
 	target_plane_vec << p1.a1, p1.a2, p1.a3;
 
-	////Find if values are negative
-	//if (O1.omega < 0) { del_omega = -1 * O1.omega; }
-	//else { del_omega = (360 - O1.omega); }
-	//if (O1.phi < 0) {del_phi = -1 * O1.phi;}
-	//else { del_phi = (360 - O1.phi); }
-	//if (O1.kappa < 0) {	del_kappa = -1 * O1.kappa;}
-	//else { del_kappa = (360 - O1.kappa); }
-
-
 	Rotation_g2i(-1*O1.omega, -1*O1.phi, -1*O1.kappa, R_del);
 	
 	global_translation << O1.X, O1.Y, O1.Z;
 
 	//Find new plane parameters
 	target_rot_vec = target_plane_vec * R_del;
-	
-	//full_transformed = rotate_translate_plane(R_del, global_translation, p1);
 
 	//Find the distance. This is done by arbitrarily shifting the Global coordinates
 	// so to not have unnecessairily large numbers
 	shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
 	plane_dist = -1*target_rot_vec * shiftdown.transpose() + (p1.b);
-
-	//DEBUG
-	//Plane temp_rot_plane = p1;
-	//rotate_plane_points(temp_rot_plane, R_del);
-	//save_plane(temp_rot_plane);
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
