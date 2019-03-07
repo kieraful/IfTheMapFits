@@ -10,7 +10,7 @@ void vec2mat(vector<RowVectorXd>& vec, MatrixXd& mat, int cols)
 	{
 		for(int j=0; j<cols; j++)
 		{
-			mat(i,j)=vec[i](j);			
+			mat(i,j)=vec[i][j];			
 		}
 	}
 	
