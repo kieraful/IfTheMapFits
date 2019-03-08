@@ -619,15 +619,15 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			// If there is more than 1 candidate, check the relative distances
 
 			// reset distance threshold
-			best_dist = 60; // Planes should definitely not be more than 40 meters away from each other
+			best_dist = 10; // Planes should definitely not be more than 40 meters away from each other
 			best_plane = -1;
 			// For each candidate plane, find closest matching plane in base (Euclidian distance)
 			if (candidates.size() > 1)
 			{
 				for (int m = 0; m < candidates.size(); m++)
 				{
-					//dist_temp = check_plane_dists(unique.reference_orientations[m], scenes[i].scene_orientation, unique.unique_planes[m], scenes[i].planes[j]);
-					dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
+					dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
+					//dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
 
 
 					//Azimuth check
@@ -637,7 +637,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 					//dist_temp = max(abs(unique.unique_planes[candidates[m]].b), abs(scenes[i].planes[j].b)) + 
 
-					if (dist_temp < best_dist && az_test < 50)
+					if (dist_temp < best_dist )//&& az_test < 50)
 					{
 						//This is the best plane so far
 						best_dist = abs(dist_temp);
@@ -768,21 +768,30 @@ void print_vector(vector<int> print_vector)
 }
 
 
-double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
+double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane p_base, Plane p_target)
 {
 	
 	//Change to global distance. 
-	Vector3d base_plane, target_plane, target_translation, base_translation;
-	base_plane << plane_base.a1, plane_base.a2, plane_base.a3; //In Ground
-	target_plane << plane_target.a1, plane_target.a2, plane_target.a3; // In Ground
-	base_translation << orient_base.X, orient_base.Y, orient_base.Z; //EOP of base scene
-	target_translation << orient_target.X, orient_target.Y, orient_target.Z; //EOP of target scene
-	double d1_glob = -1 * target_plane.transpose()*base_translation + abs(plane_base.b); //Distance to plane in target scene
-	double d2_glob = -1 * target_plane.transpose()*target_translation + abs(plane_target.b); //Distance to plane in target scene
+	Vector3d shiftdown, shifted_base, shifted_target, target_rot_vec, base_rot_vec;
+	double d1, d2;
+	//Find the shiftdown between EOP
+	shiftdown(0) = orient_base.X - (orient_base.X - orient_target.X) + 1;
+	shiftdown(1) = orient_base.Y - (orient_base.Y - orient_target.Y) + 1;
+	shiftdown(2) = orient_base.Z - (orient_base.Z - orient_target.Z) + 1;
+
+	shifted_base << orient_base.X - shiftdown(0), orient_base.Y - shiftdown(1), orient_base.Z - shiftdown(2);
+	shifted_target << orient_target.X - shiftdown(0), orient_target.Y - shiftdown(1), orient_target.Z - shiftdown(2);
 
 
-	return abs(abs(d2_glob) - abs(d1_glob));
+	//Find the plane equation vectors
+	base_rot_vec << p_base.a1, p_base.a2, p_base.a3;
+	target_rot_vec << p_target.a1, p_target.a2, p_target.a3;
 
+	d1 = -1 * base_rot_vec.transpose() * shifted_base + p_base.b_orig;
+	d2 = -1 * target_rot_vec.transpose() * shifted_target + p_target.b_orig;
+
+
+	return abs(abs(d2) - abs(d1));
 
 }
 
@@ -1051,12 +1060,14 @@ void plane_to_global(Plane &p1, Orientation O1)
 
 	//Find the distance. This is done by arbitrarily shifting the Global coordinates
 	// so to not have unnecessairily large numbers
-	shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
-	plane_dist = -1*target_rot_vec * shiftdown.transpose() + (p1.b);
+
+	//shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
+	plane_dist = -1*target_rot_vec * global_translation.transpose() + (p1.b);
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
 	p1.a3 = target_rot_vec(2);
+	p1.b_orig = p1.b; //save original 
 	p1.b = plane_dist;
 
 
@@ -1172,6 +1183,7 @@ vector<Scene> LoadDebugData()
 	char * plane1_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_0.pcd";
 	char * plane1_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_1.pcd";
 	char * plane1_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
+	char * plane1_3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
 
 	char * plane2_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_0.pcd";
 	char * plane2_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Cloud_Plane_1.pcd";

@@ -15,29 +15,31 @@ int main() {
 	fprintf(stdout, "\n----------------------IF THE MAP FITS BORESIGHT CALIBRATION----------------------------\n");
 	fprintf(stdout, "\n\tThe purpose of this program is to compute the Boresight calibration parameters of \n");
 	fprintf(stdout, "\ta system with GNSS/INS/LiDAR sensors \n\n\n");
-		
-	fprintf(stdout, "    ___________________         \n");
-	fprintf(stdout, "   |,-----.,-----.,---.\        \n");
-	fprintf(stdout, "   ||     ||     ||    \\       \n");
-	fprintf(stdout, "   |`-----'|-----||-----\`----. \n");
-	fprintf(stdout, "   [       |    -||-   _|    (| \n");
-	fprintf(stdout, "   [  ,--. |_____||___/.--.   | \n");
-	fprintf(stdout, "   =-(( `))-----------(( `))-== \n");
-	fprintf(stdout, "      `--'             `--'     \n");
+
+
+	fprintf(stdout, "    _________|T|_______         											\n");
+	fprintf(stdout, "   |,-----.,-----.,---.\        											\n");
+	fprintf(stdout, "   ||  IF || THE ||MAP \\       											\n");
+	fprintf(stdout, "   |`-----'|-----||-----\`----. 											\n");
+	fprintf(stdout, "   [       |    -||-   _|    (| 											\n");
+	fprintf(stdout, "   [  ,--. |_FITS||___/.--.   | 											\n");
+	fprintf(stdout, "   =-(( `))-----------(( `))-== 											\n");
+	fprintf(stdout, "      `--'             `--'     											\n");
 	
 	
 	fprintf(stdout, "\n---------------------------------------------------------------------------------------\n");
 	
 	//Initialize variables 
 	vector<char *> pcd_files;
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1_b.pcd";
-	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2_b.pcd";
-	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
-	char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation4_b.pcd";
+	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation1_b.pcd";
+	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation2_b.pcd";
+	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
+	//char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation4_b.pcd";
 	
-	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
-	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation2_b.pcd";
-	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation3_b.pcd";
+	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
+	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation2_b.pcd";
+	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation3_b.pcd";
+	char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation4_b.pcd";
 	
 	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
@@ -47,9 +49,9 @@ int main() {
 	//char * file2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	//char * file3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	
-	pcd_files.push_back(file1); //vector of input files
-	pcd_files.push_back(file2);
-	pcd_files.push_back(file3);
+	//pcd_files.push_back(file1); //vector of input files
+	//pcd_files.push_back(file2);
+	//pcd_files.push_back(file3);
 	pcd_files.push_back(file4);
 
 	
@@ -63,16 +65,16 @@ int main() {
 																		 //Read_Mat("Orientation.txt", GNSS_INS_data);
 	//Read in EOP's for each orientation
 	MatrixXd Orientation_EOP;
-	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
-	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
+	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
+	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Apple_EOP_Edmond.txt", Orientation_EOP);
 	
 	// Load the files into scenes
-	vector<Scene> scenes = load_scenes(pcd_files, Orientation_EOP);
+	//vector<Scene> scenes = load_scenes(pcd_files, Orientation_EOP);
 
 
 
 	 //DEBUG INPUT
-	//scenes = LoadDebugData();
+	vector<Scene> scenes = LoadDebugData();
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
 	clog << "Matching planes....";

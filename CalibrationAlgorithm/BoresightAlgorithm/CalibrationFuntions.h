@@ -69,7 +69,7 @@ const double RAD2DEG = (180 / PI);
 
 struct Plane {
 
-	double a1, a2, a3, b; // plane parameters
+	double a1, a2, a3, b, b_orig; // plane parameters
 	PointCloudXYZptr points_on_plane;
 
 };
