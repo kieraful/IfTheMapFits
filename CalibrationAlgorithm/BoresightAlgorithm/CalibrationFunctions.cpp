@@ -1197,12 +1197,12 @@ vector<Scene> LoadDebugData()
 	char * plane_equations2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\PlaneEquations.txt";
 	char * plane_equations3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\PlaneEquations.txt";
 	char * plane_equations4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\PlaneEquations.txt";
-	
+
 	char * orientation1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Orientation.txt";
 	char * orientation2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Orientation.txt";
 	char * orientation3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Orientation.txt";
 	char * orientation4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Orientation.txt";
-
+	
 
 	pcd_files1.push_back(plane0_0);
 	pcd_files1.push_back(plane0_1);
