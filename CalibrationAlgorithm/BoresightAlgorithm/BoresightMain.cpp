@@ -36,10 +36,10 @@ int main() {
 	//char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation3_b.pcd";
 	//char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Orientation4_b.pcd";
 	
-	char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
+	/*char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation1_b.pcd";
 	char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation2_b.pcd";
 	char * file3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation3_b.pcd";
-	char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation4_b.pcd";
+	char * file4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Orientation4_b.pcd";*/
 	
 	//char * file1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points.pcd";
 	//char * file2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\IfTheMapFits\\Data\\FirstDataset\\All_points_dec5.pcd";
@@ -52,7 +52,7 @@ int main() {
 	//pcd_files.push_back(file1); //vector of input files
 	//pcd_files.push_back(file2);
 	//pcd_files.push_back(file3);
-	pcd_files.push_back(file4);
+	//pcd_files.push_back(file4);
 
 	
 	Orientation base_orientation;
@@ -66,7 +66,7 @@ int main() {
 	//Read in EOP's for each orientation
 	MatrixXd Orientation_EOP;
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
-	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Apple_EOP_Edmond.txt", Orientation_EOP);
+	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Apple_EOP_Edmond.txt", Orientation_EOP);
 
 	Read_Mat("C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Edmond_Cross_EOP2.txt", Orientation_EOP);
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
@@ -135,11 +135,16 @@ int main() {
 	MatrixXd planeparams;
 	MatrixXd scanparams;
 	MatrixXd pointparams;
+	MatrixXd GNSSINSparams = Orientation_EOP.block(0, 2, Orientation_EOP.rows(), 6);
 
 	//Convert vector of vectors to MatrixXd for plane, scene, and lidar point parameters
 	vec2mat(plane_details, planeparams, 4);
 	vec2mat(scene_details, scanparams, 6);
 	vec2mat(point_details, pointparams, 5);
+
+	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\planeparams.txt", planeparams, 5);
+	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\scanparams.txt", scanparams, 5);
+	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\pointparams.txt", pointparams, 5);
 
 	//Get number of planes, scans, lidar points
 	int numPlanes = planeparams.rows();
@@ -163,7 +168,7 @@ int main() {
 	MatrixXd V(numPlanes, 1);
 	MatrixXd B(u + numPlanes, u + numPlanes);
 	MatrixXd C(u + numPlanes, 1);
-	MatrixXd Y(u + numPlanes, 1);
+	MatrixXd Y = MatrixXd::Ones(u + numPlanes, 1);
 
 	//Change hardcoded values to actual values******************************************************
 	//Set P. Clo is a diagonal matrix so inverse of Clo is a diagonal matrix with each diagonal element inversed.
@@ -180,12 +185,15 @@ int main() {
 	P.block(numScans * 6, numScans * 6, numPlanes, numPlanes) = MatrixXd::Identity(numPlanes, numPlanes) * 1 / sqrt(pow(0.003, 2) + pow(0.003, 2) + pow(0.004, 2));
 	P.block(numScans * 6 + numPlanes, numScans * 6 + numPlanes, numLidPts, numLidPts) = MatrixXd::Identity(numLidPts, numLidPts) * 1 / 0.03;
 
+	int iter = 1;
 	//double mean_Y = 1;
 	//mean_Y > 0.000001
+	cout << "Y: " << Y.block(0, 0, 6, 1);
 
-	for (int iter = 0; iter < 10; iter++)
+	//for (int iter = 0; iter < 10; iter++)
+`	while (Y(0, 0) > 0.0001 || Y(1, 0) > 0.0001 || Y(2, 0) > 0.0001 || Y(3, 0) > 0.0001 || Y(4, 0) > 0.0001 || Y(5, 0) > 0.0001)
 	{
-		computeAandw(A_full, A, H, w_full, w, V, u, numPlanes, numScans, numLidPts, bs_params, planeparams, scanparams, pointparams, Orientation_EOP);
+		computeAandw(A_full, A, H, w_full, w, V, u, numPlanes, numScans, numLidPts, bs_params, planeparams, scanparams, pointparams, GNSSINSparams);
 		//cout << "A=" << A_full << "\n\n";
 		//cout << "w=" << w << "\n\n";
 
@@ -240,7 +248,8 @@ int main() {
 			}
 		}
 
-		cout << "Iteration: " << iter+1 << endl;
+		cout << "Iteration: " << iter << endl;
+		cout << "Delta: " << Y.block(0, 0, 6, 1) << endl;
 
 	}
 

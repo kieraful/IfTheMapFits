@@ -182,18 +182,18 @@ MatrixXd RotMatElements(double w, double phi, double K)
 	MatrixXd RotK(3,3);
 	
 	Rotw << 1, 0, 0,
-		0, cos(w), sin(w),
-		0, -sin(w), cos(w);
+		0, cosd(w), sind(w),
+		0, -sind(w), cosd(w);
 
-	Rotphi << cos(phi), 0, -sin(phi),
+	Rotphi << cosd(phi), 0, -sind(phi),
 		0, 1, 0,
-		sin(phi), 0, cos(phi);
+		sind(phi), 0, cosd(phi);
 
-	RotK << cos(K), sin(K), 0,
-		-sin(K), cos(K), 0,
+	RotK << cosd(K), sind(K), 0,
+		-sind(K), cosd(K), 0,
 		0, 0, 1;
 	
-	MatrixXd RotMat = RotK*Rotphi*Rotw;
+	MatrixXd RotMat = RotK.transpose()*Rotphi.transpose()*Rotw.transpose();
 	
 	return RotMat;
 }
@@ -226,7 +226,6 @@ MatrixXd PtEqnWrtRotbjg(double x_Sjb, double y_Sjb, double z_Sjb, double w_Sb, d
 	Dbjg1(6,0) = n_zpg*(x_Sjb + RSb_11*x_sj + RSb_12*y_sj + RSb_13*z_sj);
 	Dbjg1(7,0) = n_zpg*(y_Sjb + RSb_21*x_sj + RSb_22*y_sj + RSb_23*z_sj); 
 	Dbjg1(8,0) = n_zpg*(z_Sjb + RSb_31*x_sj + RSb_32*y_sj + RSb_33*z_sj);
- 
  	
 	return Dbjg1;
 }
@@ -249,16 +248,16 @@ MatrixXd PtEqnWrtRotSb(double w_bjg, double phi_bjg, double K_bjg, double x_sj, 
 	double Rbjg_31 = RotMat(2,0);
 	double Rbjg_32 = RotMat(2,1);
 	double Rbjg_33 = RotMat(2,2);
-		
-	DSb1(0,0) = x_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg);
-	DSb1(1,0) = y_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg); 
-	DSb1(2,0) = z_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg); 
-	DSb1(3,0) = x_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg); 
-	DSb1(4,0) = y_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg); 
-	DSb1(5,0) = z_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg); 
-	DSb1(6,0) = x_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg); 
-	DSb1(7,0) = y_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg); 
-	DSb1(8,0) = z_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg);
+
+	DSb1(0, 0) = x_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg);
+	DSb1(1, 0) = y_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg);
+	DSb1(2, 0) = z_sj*(Rbjg_11*n_xpg + Rbjg_21*n_ypg + Rbjg_31*n_zpg);
+	DSb1(3, 0) = x_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg);
+	DSb1(4, 0) = y_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg);
+	DSb1(5, 0) = z_sj*(Rbjg_12*n_xpg + Rbjg_22*n_ypg + Rbjg_32*n_zpg);
+	DSb1(6, 0) = x_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg);
+	DSb1(7, 0) = y_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg);
+	DSb1(8, 0) = z_sj*(Rbjg_13*n_xpg + Rbjg_23*n_ypg + Rbjg_33*n_zpg);
  	
 	return DSb1;
 }
@@ -268,32 +267,31 @@ MatrixXd PtEqnWrtRotSb(double w_bjg, double phi_bjg, double K_bjg, double x_sj, 
 //Function to compute derivatives of rotation matrix elements wrt rotation angles
 MatrixXd RotWrtAngles(double w, double phi, double K)
 {
-	MatrixXd Dbjg2 = MatrixXd::Zero(9,3);
+	MatrixXd D = MatrixXd::Zero(9,3);
 	
-	Dbjg2(0,1) = -cos(K)*sin(phi);
-	Dbjg2(0,2) = -sin(K)*cos(phi);
-	Dbjg2(1,1) = sin(K)*sin(phi);
-	Dbjg2(1,2) = -cos(K)*cos(phi);
-	Dbjg2(2,1) = cos(phi);
-	Dbjg2(3,0) = cos(K)*cos(w)*sin(phi)-sin(K)*sin(w);
-	Dbjg2(3,1) = cos(K)*cos(phi)*sin(w);
-	Dbjg2(3,2) = cos(K)*cos(w) - sin(K)*sin(phi)*sin(w);
-	Dbjg2(4,0) = -sin(K)*cos(w)*sin(phi) - cos(K)*sin(w);
-	Dbjg2(4,1) = -sin(K)*cos(phi)*sin(w);
-	Dbjg2(4,2) = -cos(K)*sin(phi)*sin(w) - sin(K)*cos(w);
-	Dbjg2(5,0) = -cos(phi)*cos(w);
-	Dbjg2(5,1) = sin(phi)*sin(w);
-	Dbjg2(6,0) = sin(K)*cos(w) + cos(K)*sin(phi)*sin(w);
-	Dbjg2(6,1) = -cos(K)*cos(phi)*cos(w);
-	Dbjg2(6,2) = cos(K)*sin(w) + sin(K)*cos(w)*sin(phi);
-	Dbjg2(7,0) = cos(K)*cos(w) - sin(K)*sin(phi)*sin(w);
-	Dbjg2(7,1) = sin(K)*cos(phi)*cos(w);
-	Dbjg2(7,2) = -sin(K)*sin(w) + cos(K)*cos(w)*sin(phi);
-	Dbjg2(8,0) = -cos(phi)*sin(w);
-	Dbjg2(8,1) = -cos(w)*sin(phi);
-	
+	D(0, 1) = -cosd(K)*sind(phi);
+	D(0, 2) = -sind(K)*cosd(phi);
+	D(1, 1) = -sind(K)*sind(phi);
+	D(1, 2) = cosd(K)*cosd(phi);
+	D(2, 1) = -cosd(phi);
+	D(3, 0) = sind(K)*sind(w) + cosd(K)*cosd(w)*sind(phi);
+	D(3, 1) = cosd(K)*cosd(phi)*sind(w);
+	D(3, 2) = -cosd(K)*cosd(w) - sind(K)*sind(phi)*sind(w);
+	D(4, 0) = sind(K)*cosd(w)*sind(phi) - cosd(K)*sind(w);
+	D(4, 1) = sind(K)*cosd(phi)*sind(w);
+	D(4, 2) = cosd(K)*sind(phi)*sind(w) - sind(K)*cosd(w);
+	D(5, 0) = cosd(phi)*cosd(w);
+	D(5, 1) = -sind(phi)*sind(w);
+	D(6, 0) = sind(K)*cosd(w) - cosd(K)*sind(phi)*sind(w);
+	D(6, 1) = cosd(K)*cosd(phi)*cosd(w);
+	D(6, 2) = cosd(K)*sind(w) - sind(K)*cosd(w)*sind(phi);
+	D(7, 0) = -cosd(K)*cosd(w) - sind(K)*sind(phi)*sind(w);
+	D(7, 1) = sind(K)*cosd(phi)*cosd(w);
+	D(7, 2) = sind(K)*sind(w) + cosd(K)*cosd(w)*sind(phi);
+	D(8, 0) = -cosd(phi)*sind(w);
+	D(8, 1) = -cosd(w)*sind(phi);
 
-	return Dbjg2;
+	return D;
 }
 
 
@@ -314,46 +312,46 @@ MatrixXd computeAPt(int u, int numPlanes, int planeNum, int scanNum,
 	/* //Compute elements of Rbjg and RSb rotation angles
 
 	//Rbjg
-	double Rbjg_11 = cos(K_bjg)*cos(phi_bjg);
-	double Rbjg_12_term1 = cos(K_bjg)*sin(phi_bjg)*sin(w_bjg);
-	double Rbjg_12_term2 = sin(K_bjg)*cos(w_bjg);
-	double Rbjg_13_term1 = sin(K_bjg)*sin(w_bjg);
-	//double Rbjg_13_term2 = Rbjg_22_term1*sin(phi_bjg);
-	double Rbjg_21 = sin(K_bjg)*cos(phi_bjg);
-	double Rbjg_22_term1 = cos(K_bjg)*cos(w_bjg);
-	double Rbjg_22_term2 = sin(K_bjg)*sin(phi_bjg)*sin(w_bjg);
-	//Rbjg_23_term1 = Rbjg_12_term2*sin(phi_bjg);
-	//Rbjg_23_term2 = cos(K_bjg)*sin(w_bjg);
-	//Rbjg_31 = -sin(phi_bjg);
-	double Rbjg_32 = cos(phi_bjg)*sin(w_bjg);
-	double Rbjg_33 = cos(phi_bjg)*cos(w_bjg);
+	double Rbjg_11 = cosd(K_bjg)*cosd(phi_bjg);
+	double Rbjg_12_term1 = cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg);
+	double Rbjg_12_term2 = sind(K_bjg)*cosd(w_bjg);
+	double Rbjg_13_term1 = sind(K_bjg)*sind(w_bjg);
+	//double Rbjg_13_term2 = Rbjg_22_term1*sind(phi_bjg);
+	double Rbjg_21 = sind(K_bjg)*cosd(phi_bjg);
+	double Rbjg_22_term1 = cosd(K_bjg)*cosd(w_bjg);
+	double Rbjg_22_term2 = sind(K_bjg)*sind(phi_bjg)*sind(w_bjg);
+	//Rbjg_23_term1 = Rbjg_12_term2*sind(phi_bjg);
+	//Rbjg_23_term2 = cosd(K_bjg)*sind(w_bjg);
+	//Rbjg_31 = -sind(phi_bjg);
+	double Rbjg_32 = cosd(phi_bjg)*sind(w_bjg);
+	double Rbjg_33 = cosd(phi_bjg)*cosd(w_bjg);
 	
 	//RSb
-	//RSb_11 = cos(K_Sb)*cos(phi_Sb);
-	double RSb_12_term1 = cos(K_Sb)*sin(phi_Sb)*sin(w_Sb);
-	double RSb_12_term2 = sin(K_Sb)*cos(w_Sb);
-	double RSb_13_term1 = sin(K_Sb)*sin(w_Sb);
-	//double RSb_13_term2 = RSb_22_term1*sin(phi_Sb);
-	double RSb_21 = sin(K_Sb)*cos(phi_Sb);
-	double RSb_22_term1 = cos(K_Sb)*cos(w_Sb);
-	double RSb_22_term2 = sin(K_Sb)*sin(phi_Sb)*sin(w_Sb);
-	//RSb_23_term1 = RSb_12_term2*sin(phi_Sb);
-	//RSb_23_term2 = cos(K_Sb)*sin(w_Sb);
-	//RSb_31 = -sin(phi_Sb);
-	double RSb_32 = cos(phi_Sb)*sin(w_Sb);
-	double RSb_33 = cos(phi_Sb)*cos(w_Sb); */
+	//RSb_11 = cosd(K_Sb)*cosd(phi_Sb);
+	double RSb_12_term1 = cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb);
+	double RSb_12_term2 = sind(K_Sb)*cosd(w_Sb);
+	double RSb_13_term1 = sind(K_Sb)*sind(w_Sb);
+	//double RSb_13_term2 = RSb_22_term1*sind(phi_Sb);
+	double RSb_21 = sind(K_Sb)*cosd(phi_Sb);
+	double RSb_22_term1 = cosd(K_Sb)*cosd(w_Sb);
+	double RSb_22_term2 = sind(K_Sb)*sind(phi_Sb)*sind(w_Sb);
+	//RSb_23_term1 = RSb_12_term2*sind(phi_Sb);
+	//RSb_23_term2 = cosd(K_Sb)*sind(w_Sb);
+	//RSb_31 = -sind(phi_Sb);
+	double RSb_32 = cosd(phi_Sb)*sind(w_Sb);
+	double RSb_33 = cosd(phi_Sb)*cosd(w_Sb); */
 	
 	
 	//6 Boresight parameters
-	A_point(0,0) =  n_zpg*sin(phi_bjg) + n_xpg*cos(K_bjg)*cos(phi_bjg) - n_ypg*sin(K_bjg)*cos(phi_bjg);
+	A_point(0,0) = n_xpg*cosd(K_bjg)*cosd(phi_bjg) - n_zpg*sind(phi_bjg) + n_ypg*sind(K_bjg)*cosd(phi_bjg);
 	
 	
-	A_point(0,1) =  (n_xpg*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + n_ypg*(cos(K_bjg)*cos(w_bjg) 
-		- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - n_zpg*cos(phi_bjg)*sin(w_bjg));
+	A_point(0,1) =  (n_ypg*(cosd(K_bjg)*cosd(w_bjg) + sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) - n_xpg*(sind(K_bjg)*cosd(w_bjg) 
+		- cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + n_zpg*cosd(phi_bjg)*sind(w_bjg));
 	
 	
-	A_point(0,2) =  (n_xpg*(sin(K_bjg)*sin(w_bjg) - cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + n_ypg*(cos(K_bjg)*sin(w_bjg) 
-		+ sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + n_zpg*cos(phi_bjg)*cos(w_bjg));
+	A_point(0,2) =  (n_xpg*(sind(K_bjg)*sind(w_bjg) + cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) - n_ypg*(cosd(K_bjg)*sind(w_bjg) 
+		- sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) + n_zpg*cosd(phi_bjg)*cosd(w_bjg));
 	
 	MatrixXd B_PtWrtRot = PtEqnWrtRotSb(w_bjg, phi_bjg, K_bjg, x_sj, y_sj, z_sj, n_xpg, n_ypg, n_zpg);
 	
@@ -368,37 +366,30 @@ MatrixXd computeAPt(int u, int numPlanes, int planeNum, int scanNum,
 	//4 Plane parameters
 	int i = 6 + 4*planeNum;	
 			 
-	A_point(0,i) = (x_bjg + y_Sjb*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + z_Sjb*(sin(K_bjg)*sin(w_bjg) 
-		- cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + x_sj*(sin(phi_Sb)*(sin(K_bjg)*sin(w_bjg) - cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) 
-		- sin(K_Sb)*cos(phi_Sb)*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-		+ cos(K_Sb)*cos(K_bjg)*cos(phi_Sb)*cos(phi_bjg)) + z_sj*((cos(K_Sb)*sin(w_Sb) 
-		+ sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-		+ cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) - cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) 
-		+ cos(phi_Sb)*cos(w_Sb)*(sin(K_bjg)*sin(w_bjg) - cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) 
-		+ y_sj*((cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(sin(K_bjg)*cos(w_bjg) 
-		+ cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) 
-		+ cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) - cos(phi_Sb)*sin(w_Sb)*(sin(K_bjg)*sin(w_bjg) 
-		- cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) + x_Sjb*cos(K_bjg)*cos(phi_bjg));
+	A_point(0,i) = (x_bjg - y_Sjb*(sind(K_bjg)*cosd(w_bjg) - cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + z_Sjb*(sind(K_bjg)*sind(w_bjg) 
+		+ cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) - x_sj*(sind(phi_Sb)*(sind(K_bjg)*sind(w_bjg) + cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) 
+			+ sind(K_Sb)*cosd(phi_Sb)*(sind(K_bjg)*cosd(w_bjg) - cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) - cosd(K_Sb)*cosd(K_bjg)*cosd(phi_Sb)*cosd(phi_bjg)) 
+		+ z_sj*((cosd(K_Sb)*sind(w_Sb) - sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb))*(sind(K_bjg)*cosd(w_bjg) - cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) 
+			+ cosd(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*sind(w_Sb) + cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) + cosd(phi_Sb)*cosd(w_Sb)*(sind(K_bjg)*sind(w_bjg) 
+				+ cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) - y_sj*((cosd(K_Sb)*cosd(w_Sb) + sind(K_Sb)*sind(phi_Sb)*sind(w_Sb))*(sind(K_bjg)*cosd(w_bjg) 
+					- cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + cosd(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) - cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) 
+					- cosd(phi_Sb)*sind(w_Sb)*(sind(K_bjg)*sind(w_bjg) + cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) + x_Sjb*cosd(K_bjg)*cosd(phi_bjg));
 				
-	A_point(0,i+1) = (y_bjg + y_Sjb*(cos(K_bjg)*cos(w_bjg) - sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-		+ z_Sjb*(cos(K_bjg)*sin(w_bjg) + sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) 
-		- x_sj*(sin(K_Sb)*cos(phi_Sb)*(cos(K_bjg)*cos(w_bjg) - sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-		- sin(phi_Sb)*(cos(K_bjg)*sin(w_bjg) + sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) 
-		+ cos(K_Sb)*sin(K_bjg)*cos(phi_Sb)*cos(phi_bjg)) + z_sj*((cos(K_Sb)*sin(w_Sb) 
-		+ sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(cos(K_bjg)*cos(w_bjg) - sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-		- sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) - cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) 
-		+ cos(phi_Sb)*cos(w_Sb)*(cos(K_bjg)*sin(w_bjg) + sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))) 
-		- y_sj*(sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) 
-		- (cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(cos(K_bjg)*cos(w_bjg) 
-		- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(phi_Sb)*sin(w_Sb)*(cos(K_bjg)*sin(w_bjg) 
-		+ sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))) - x_Sjb*sin(K_bjg)*cos(phi_bjg));
+	A_point(0,i+1) = (y_bjg + y_Sjb*(cosd(K_bjg)*cosd(w_bjg) + sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) - z_Sjb*(cosd(K_bjg)*sind(w_bjg) 
+		- sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) + x_sj*(sind(phi_Sb)*(cosd(K_bjg)*sind(w_bjg) - sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) 
+			+ sind(K_Sb)*cosd(phi_Sb)*(cosd(K_bjg)*cosd(w_bjg) + sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + cosd(K_Sb)*sind(K_bjg)*cosd(phi_Sb)*cosd(phi_bjg)) 
+		- z_sj*((cosd(K_Sb)*sind(w_Sb) - sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb))*(cosd(K_bjg)*cosd(w_bjg) + sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) 
+			- sind(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*sind(w_Sb) + cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) + cosd(phi_Sb)*cosd(w_Sb)*(cosd(K_bjg)*sind(w_bjg) 
+				- sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) - y_sj*(sind(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) - cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) 
+					- (cosd(K_Sb)*cosd(w_Sb) + sind(K_Sb)*sind(phi_Sb)*sind(w_Sb))*(cosd(K_bjg)*cosd(w_bjg) + sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) 
+					+ cosd(phi_Sb)*sind(w_Sb)*(cosd(K_bjg)*sind(w_bjg) - sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) + x_Sjb*sind(K_bjg)*cosd(phi_bjg));
 	 	 
-	A_point(0,i+2) = (z_bjg + x_sj*(cos(K_Sb)*cos(phi_Sb)*sin(phi_bjg) + cos(phi_bjg)*cos(w_bjg)*sin(phi_Sb) 
-		+ sin(K_Sb)*cos(phi_Sb)*cos(phi_bjg)*sin(w_bjg)) + x_Sjb*sin(phi_bjg) + z_sj*(sin(phi_bjg)*(sin(K_Sb)*sin(w_Sb) 
-		- cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) - cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb)) 
-		+ cos(phi_Sb)*cos(phi_bjg)*cos(w_Sb)*cos(w_bjg)) - y_sj*(cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*cos(w_Sb) 
-		- sin(K_Sb)*sin(phi_Sb)*sin(w_Sb)) - sin(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) 
-		+ cos(phi_Sb)*cos(phi_bjg)*cos(w_bjg)*sin(w_Sb)) + z_Sjb*cos(phi_bjg)*cos(w_bjg) - y_Sjb*cos(phi_bjg)*sin(w_bjg));
+	A_point(0,i+2) = (z_bjg - x_sj*(cosd(K_Sb)*cosd(phi_Sb)*sind(phi_bjg) + cosd(phi_bjg)*cosd(w_bjg)*sind(phi_Sb) 
+		- sind(K_Sb)*cosd(phi_Sb)*cosd(phi_bjg)*sind(w_bjg)) - x_Sjb*sind(phi_bjg) - z_sj*(sind(phi_bjg)*(sind(K_Sb)*sind(w_Sb) 
+			+ cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) + cosd(phi_bjg)*sind(w_bjg)*(cosd(K_Sb)*sind(w_Sb) - sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) 
+			- cosd(phi_Sb)*cosd(phi_bjg)*cosd(w_Sb)*cosd(w_bjg)) + y_sj*(sind(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) - cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) 
+				+ cosd(phi_bjg)*sind(w_bjg)*(cosd(K_Sb)*cosd(w_Sb) + sind(K_Sb)*sind(phi_Sb)*sind(w_Sb)) + cosd(phi_Sb)*cosd(phi_bjg)*cosd(w_bjg)*sind(w_Sb)) 
+		+ z_Sjb*cosd(phi_bjg)*cosd(w_bjg) + y_Sjb*cosd(phi_bjg)*sind(w_bjg));
 		
 	A_point(0,i+3) = 1;
 	
@@ -470,64 +461,87 @@ MatrixXd computewPt(double x_Sjb, double y_Sjb, double z_Sjb,
 	//Compute elements of Rbjg and RSb rotation angles
 
 	//Rbjg
-/* 	double Rbjg_11 = cos(K_bjg)*cos(phi_bjg);
-	double Rbjg_12_term1 = cos(K_bjg)*sin(phi_bjg)*sin(w_bjg);
-	double Rbjg_12_term2 = sin(K_bjg)*cos(w_bjg);
-	double Rbjg_13_term1 = sin(K_bjg)*sin(w_bjg);
-	//double Rbjg_13_term2 = Rbjg_22_term1*sin(phi_bjg);
-	double Rbjg_21 = sin(K_bjg)*cos(phi_bjg);
-	double Rbjg_22_term1 = cos(K_bjg)*cos(w_bjg);
-	double Rbjg_22_term2 = sin(K_bjg)*sin(phi_bjg)*sin(w_bjg);
-	//Rbjg_23_term1 = Rbjg_12_term2*sin(phi_bjg);
-	//Rbjg_23_term2 = cos(K_bjg)*sin(w_bjg);
-	//Rbjg_31 = -sin(phi_bjg);
-	double Rbjg_32 = cos(phi_bjg)*sin(w_bjg);
-	double Rbjg_33 = cos(phi_bjg)*cos(w_bjg);
+/* 	double Rbjg_11 = cosd(K_bjg)*cosd(phi_bjg);
+	double Rbjg_12_term1 = cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg);
+	double Rbjg_12_term2 = sind(K_bjg)*cosd(w_bjg);
+	double Rbjg_13_term1 = sind(K_bjg)*sind(w_bjg);
+	//double Rbjg_13_term2 = Rbjg_22_term1*sind(phi_bjg);
+	double Rbjg_21 = sind(K_bjg)*cosd(phi_bjg);
+	double Rbjg_22_term1 = cosd(K_bjg)*cosd(w_bjg);
+	double Rbjg_22_term2 = sind(K_bjg)*sind(phi_bjg)*sind(w_bjg);
+	//Rbjg_23_term1 = Rbjg_12_term2*sind(phi_bjg);
+	//Rbjg_23_term2 = cosd(K_bjg)*sind(w_bjg);
+	//Rbjg_31 = -sind(phi_bjg);
+	double Rbjg_32 = cosd(phi_bjg)*sind(w_bjg);
+	double Rbjg_33 = cosd(phi_bjg)*cosd(w_bjg);
 
 	//RSb
-	//RSb_11 = cos(K_Sb)*cos(phi_Sb);
-	double RSb_12_term1 = cos(K_Sb)*sin(phi_Sb)*sin(w_Sb);
-	double RSb_12_term2 = sin(K_Sb)*cos(w_Sb);
-	double RSb_13_term1 = sin(K_Sb)*sin(w_Sb);
-	//double RSb_13_term2 = RSb_22_term1*sin(phi_Sb);
-	double RSb_21 = sin(K_Sb)*cos(phi_Sb);
-	double RSb_22_term1 = cos(K_Sb)*cos(w_Sb);
-	double RSb_22_term2 = sin(K_Sb)*sin(phi_Sb)*sin(w_Sb);
-	//RSb_23_term1 = RSb_12_term2*sin(phi_Sb);
-	//RSb_23_term2 = cos(K_Sb)*sin(w_Sb);
-	//RSb_31 = -sin(phi_Sb);
-	double RSb_32 = cos(phi_Sb)*sin(w_Sb);
-	double RSb_33 = cos(phi_Sb)*cos(w_Sb); */
+	//RSb_11 = cosd(K_Sb)*cosd(phi_Sb);
+	double RSb_12_term1 = cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb);
+	double RSb_12_term2 = sind(K_Sb)*cosd(w_Sb);
+	double RSb_13_term1 = sind(K_Sb)*sind(w_Sb);
+	//double RSb_13_term2 = RSb_22_term1*sind(phi_Sb);
+	double RSb_21 = sind(K_Sb)*cosd(phi_Sb);
+	double RSb_22_term1 = cosd(K_Sb)*cosd(w_Sb);
+	double RSb_22_term2 = sind(K_Sb)*sind(phi_Sb)*sind(w_Sb);
+	//RSb_23_term1 = RSb_12_term2*sind(phi_Sb);
+	//RSb_23_term2 = cosd(K_Sb)*sind(w_Sb);
+	//RSb_31 = -sind(phi_Sb);
+	double RSb_32 = cosd(phi_Sb)*sind(w_Sb);
+	double RSb_33 = cosd(phi_Sb)*cosd(w_Sb); */
 	
 	
-	w3(0,0) = (dp_sum + n_xpg*(x_bjg + y_Sjb*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-			+ z_Sjb*(sin(K_bjg)*sin(w_bjg) - cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + x_sj*(sin(phi_Sb)*(sin(K_bjg)*sin(w_bjg) 
-			- cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) - sin(K_Sb)*cos(phi_Sb)*(sin(K_bjg)*cos(w_bjg) 
-			+ cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(K_Sb)*cos(K_bjg)*cos(phi_Sb)*cos(phi_bjg)) 
-			+ z_sj*((cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(sin(K_bjg)*cos(w_bjg) 
-			+ cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) 
-			- cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) + cos(phi_Sb)*cos(w_Sb)*(sin(K_bjg)*sin(w_bjg) 
-			- cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) + y_sj*((cos(K_Sb)*cos(w_Sb) 
-			- sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(sin(K_bjg)*cos(w_bjg) + cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) 
-			+ cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) 
-			- cos(phi_Sb)*sin(w_Sb)*(sin(K_bjg)*sin(w_bjg) - cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) 
-			+ x_Sjb*cos(K_bjg)*cos(phi_bjg)) + n_ypg*(y_bjg + y_Sjb*(cos(K_bjg)*cos(w_bjg) 
-			- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + z_Sjb*(cos(K_bjg)*sin(w_bjg) 
-			+ sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) - x_sj*(sin(K_Sb)*cos(phi_Sb)*(cos(K_bjg)*cos(w_bjg) 
-			- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - sin(phi_Sb)*(cos(K_bjg)*sin(w_bjg) 
-			+ sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + cos(K_Sb)*sin(K_bjg)*cos(phi_Sb)*cos(phi_bjg)) 
-			+ z_sj*((cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(cos(K_bjg)*cos(w_bjg) 
-			- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) 
-			- cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) + cos(phi_Sb)*cos(w_Sb)*(cos(K_bjg)*sin(w_bjg) 
-			+ sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))) - y_sj*(sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) 
-			+ cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) - (cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(cos(K_bjg)*cos(w_bjg) 
-			- sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(phi_Sb)*sin(w_Sb)*(cos(K_bjg)*sin(w_bjg) + sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)))
-			- x_Sjb*sin(K_bjg)*cos(phi_bjg)) + n_zpg*(z_bjg + x_sj*(cos(K_Sb)*cos(phi_Sb)*sin(phi_bjg) + cos(phi_bjg)*cos(w_bjg)*sin(phi_Sb) 
-			+ sin(K_Sb)*cos(phi_Sb)*cos(phi_bjg)*sin(w_bjg)) + x_Sjb*sin(phi_bjg) + z_sj*(sin(phi_bjg)*(sin(K_Sb)*sin(w_Sb) 
-			- cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) - cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))
-			+ cos(phi_Sb)*cos(phi_bjg)*cos(w_Sb)*cos(w_bjg)) - y_sj*(cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*cos(w_Sb) 
-			- sin(K_Sb)*sin(phi_Sb)*sin(w_Sb)) - sin(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) 
-			+ cos(phi_Sb)*cos(phi_bjg)*cos(w_bjg)*sin(w_Sb)) + z_Sjb*cos(phi_bjg)*cos(w_bjg) - y_Sjb*cos(phi_bjg)*sin(w_bjg)));
+	//w3(0,0) = (dp_sum + n_xpg*(x_bjg + y_Sjb*(sind(K_bjg)*cosd(w_bjg) + cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) 
+	//		+ z_Sjb*(sind(K_bjg)*sind(w_bjg) - cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) + x_sj*(sind(phi_Sb)*(sind(K_bjg)*sind(w_bjg) 
+	//		- cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) - sind(K_Sb)*cosd(phi_Sb)*(sind(K_bjg)*cosd(w_bjg) 
+	//		+ cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + cosd(K_Sb)*cosd(K_bjg)*cosd(phi_Sb)*cosd(phi_bjg)) 
+	//		+ z_sj*((cosd(K_Sb)*sind(w_Sb) + sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb))*(sind(K_bjg)*cosd(w_bjg) 
+	//		+ cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + cosd(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*sind(w_Sb) 
+	//		- cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) + cosd(phi_Sb)*cosd(w_Sb)*(sind(K_bjg)*sind(w_bjg) 
+	//		- cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) + y_sj*((cosd(K_Sb)*cosd(w_Sb) 
+	//		- sind(K_Sb)*sind(phi_Sb)*sind(w_Sb))*(sind(K_bjg)*cosd(w_bjg) + cosd(K_bjg)*sind(phi_bjg)*sind(w_bjg)) 
+	//		+ cosd(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) + cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) 
+	//		- cosd(phi_Sb)*sind(w_Sb)*(sind(K_bjg)*sind(w_bjg) - cosd(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) 
+	//		+ x_Sjb*cosd(K_bjg)*cosd(phi_bjg)) + n_ypg*(y_bjg + y_Sjb*(cosd(K_bjg)*cosd(w_bjg) 
+	//		- sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + z_Sjb*(cosd(K_bjg)*sind(w_bjg) 
+	//		+ sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) - x_sj*(sind(K_Sb)*cosd(phi_Sb)*(cosd(K_bjg)*cosd(w_bjg) 
+	//		- sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) - sind(phi_Sb)*(cosd(K_bjg)*sind(w_bjg) 
+	//		+ sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)) + cosd(K_Sb)*sind(K_bjg)*cosd(phi_Sb)*cosd(phi_bjg)) 
+	//		+ z_sj*((cosd(K_Sb)*sind(w_Sb) + sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb))*(cosd(K_bjg)*cosd(w_bjg) 
+	//		- sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) - sind(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*sind(w_Sb) 
+	//		- cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) + cosd(phi_Sb)*cosd(w_Sb)*(cosd(K_bjg)*sind(w_bjg) 
+	//		+ sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg))) - y_sj*(sind(K_bjg)*cosd(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) 
+	//		+ cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) - (cosd(K_Sb)*cosd(w_Sb) - sind(K_Sb)*sind(phi_Sb)*sind(w_Sb))*(cosd(K_bjg)*cosd(w_bjg) 
+	//		- sind(K_bjg)*sind(phi_bjg)*sind(w_bjg)) + cosd(phi_Sb)*sind(w_Sb)*(cosd(K_bjg)*sind(w_bjg) + sind(K_bjg)*cosd(w_bjg)*sind(phi_bjg)))
+	//		- x_Sjb*sind(K_bjg)*cosd(phi_bjg)) + n_zpg*(z_bjg + x_sj*(cosd(K_Sb)*cosd(phi_Sb)*sind(phi_bjg) + cosd(phi_bjg)*cosd(w_bjg)*sind(phi_Sb) 
+	//		+ sind(K_Sb)*cosd(phi_Sb)*cosd(phi_bjg)*sind(w_bjg)) + x_Sjb*sind(phi_bjg) + z_sj*(sind(phi_bjg)*(sind(K_Sb)*sind(w_Sb) 
+	//		- cosd(K_Sb)*cosd(w_Sb)*sind(phi_Sb)) - cosd(phi_bjg)*sind(w_bjg)*(cosd(K_Sb)*sind(w_Sb) + sind(K_Sb)*cosd(w_Sb)*sind(phi_Sb))
+	//		+ cosd(phi_Sb)*cosd(phi_bjg)*cosd(w_Sb)*cosd(w_bjg)) - y_sj*(cosd(phi_bjg)*sind(w_bjg)*(cosd(K_Sb)*cosd(w_Sb) 
+	//		- sind(K_Sb)*sind(phi_Sb)*sind(w_Sb)) - sind(phi_bjg)*(sind(K_Sb)*cosd(w_Sb) + cosd(K_Sb)*sind(phi_Sb)*sind(w_Sb)) 
+	//		+ cosd(phi_Sb)*cosd(phi_bjg)*cosd(w_bjg)*sind(w_Sb)) + z_Sjb*cosd(phi_bjg)*cosd(w_bjg) - y_Sjb*cosd(phi_bjg)*sind(w_bjg)));
+
+	w3(0, 0) = (dp_sum + n_xpg*(x_bjg - y_Sjb*(sin(K_bjg)*cos(w_bjg) - cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + z_Sjb*(sin(K_bjg)*sin(w_bjg)
+		+ cos(K_bjg)*cos(w_bjg)*sin(phi_bjg)) + x_sj*(sin(phi_Sb)*(sin(K_bjg)*sin(w_bjg) + cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))
+			+ sin(K_Sb)*cos(phi_Sb)*(sin(K_bjg)*cos(w_bjg) - cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(K_Sb)*cos(K_bjg)*cos(phi_Sb)*cos(phi_bjg))
+		+ z_sj*(cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) - cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) - (cos(K_Sb)*sin(w_Sb)
+			+ sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(sin(K_bjg)*cos(w_bjg) - cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + cos(phi_Sb)*cos(w_Sb)*(sin(K_bjg)*sin(w_bjg)
+				+ cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) - y_sj*((cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(sin(K_bjg)*cos(w_bjg)
+					- cos(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - cos(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb))
+					+ cos(phi_Sb)*sin(w_Sb)*(sin(K_bjg)*sin(w_bjg) + cos(K_bjg)*cos(w_bjg)*sin(phi_bjg))) + x_Sjb*cos(K_bjg)*cos(phi_bjg))
+		+ n_ypg*(y_bjg + y_Sjb*(cos(K_bjg)*cos(w_bjg) + sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - z_Sjb*(cos(K_bjg)*sin(w_bjg)
+			- sin(K_bjg)*cos(w_bjg)*sin(phi_bjg)) - x_sj*(sin(phi_Sb)*(cos(K_bjg)*sin(w_bjg) - sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))
+				+ sin(K_Sb)*cos(phi_Sb)*(cos(K_bjg)*cos(w_bjg) + sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) - cos(K_Sb)*sin(K_bjg)*cos(phi_Sb)*cos(phi_bjg))
+			+ z_sj*((cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb))*(cos(K_bjg)*cos(w_bjg) + sin(K_bjg)*sin(phi_bjg)*sin(w_bjg))
+				+ sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*sin(w_Sb) - cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) - cos(phi_Sb)*cos(w_Sb)*(cos(K_bjg)*sin(w_bjg)
+					- sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))) + y_sj*((cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))*(cos(K_bjg)*cos(w_bjg)
+						+ sin(K_bjg)*sin(phi_bjg)*sin(w_bjg)) + sin(K_bjg)*cos(phi_bjg)*(sin(K_Sb)*cos(w_Sb) + cos(K_Sb)*sin(phi_Sb)*sin(w_Sb))
+						+ cos(phi_Sb)*sin(w_Sb)*(cos(K_bjg)*sin(w_bjg) - sin(K_bjg)*cos(w_bjg)*sin(phi_bjg))) + x_Sjb*sin(K_bjg)*cos(phi_bjg))
+		+ n_zpg*(z_bjg - x_sj*(cos(K_Sb)*cos(phi_Sb)*sin(phi_bjg) - cos(phi_bjg)*cos(w_bjg)*sin(phi_Sb) + sin(K_Sb)*cos(phi_Sb)*cos(phi_bjg)*sin(w_bjg))
+			- x_Sjb*sin(phi_bjg) + z_sj*(cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*sin(w_Sb) + sin(K_Sb)*cos(w_Sb)*sin(phi_Sb)) - sin(phi_bjg)*(sin(K_Sb)*sin(w_Sb)
+				- cos(K_Sb)*cos(w_Sb)*sin(phi_Sb)) + cos(phi_Sb)*cos(phi_bjg)*cos(w_Sb)*cos(w_bjg)) - y_sj*(sin(phi_bjg)*(sin(K_Sb)*cos(w_Sb)
+					+ cos(K_Sb)*sin(phi_Sb)*sin(w_Sb)) - cos(phi_bjg)*sin(w_bjg)*(cos(K_Sb)*cos(w_Sb) - sin(K_Sb)*sin(phi_Sb)*sin(w_Sb))
+					+ cos(phi_Sb)*cos(phi_bjg)*cos(w_bjg)*sin(w_Sb)) + z_Sjb*cos(phi_bjg)*cos(w_bjg) + y_Sjb*cos(phi_bjg)*sin(w_bjg)));
+
 
 	return w3;
 }

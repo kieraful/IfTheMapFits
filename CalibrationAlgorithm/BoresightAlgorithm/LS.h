@@ -13,9 +13,12 @@
 #include <algorithm>
 #include <stdexcept>
 #include <string>
+#include <iomanip> 
 
-//#define MaxMatSize 10000000
+#define MaxMatSize 10000000
 #define PI 3.14159265358979323846 
+#define sind(x) (sin(fmod((x),360) * PI / 180))
+#define cosd(x) (cos(fmod((x),360) * PI / 180))
 
 
 using namespace std;
