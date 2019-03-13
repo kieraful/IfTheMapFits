@@ -69,7 +69,7 @@ const double RAD2DEG = (180 / PI);
 
 struct Plane {
 
-	double a1, a2, a3, b, b_orig; // plane parameters
+	double a1, a2, a3, b; // plane parameters
 	PointCloudXYZptr points_on_plane;
 
 };
@@ -159,6 +159,8 @@ void print_vector(vector<RowVectorXd> print_vector, char *filename);
 void print_matrix(MatrixXd print_mat);
 
 double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target);
+
+void find_apply_shiftdown(vector<Scene> &scenes, vector<double> &shiftdown);
 
 vector<Scene> load_scenes(vector<char*> pcd_files, MatrixXd Orientation_EOP);
 

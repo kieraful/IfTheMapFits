@@ -626,8 +626,8 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 			{
 				for (int m = 0; m < candidates.size(); m++)
 				{
-					dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
-					//dist_temp = abs(unique.unique_planes[candidates[m]].b - scenes[i].planes[j].b);
+					//dist_temp = check_plane_dists(unique.reference_orientations[candidates[m]], scenes[i].scene_orientation, unique.unique_planes[candidates[m]], scenes[i].planes[j]);
+					dist_temp = abs(abs(unique.unique_planes[candidates[m]].b) - abs(scenes[i].planes[j].b));
 
 
 					//Azimuth check
@@ -637,7 +637,7 @@ UniquePlanes match_scenes(vector<Scene> scenes)
 
 					//dist_temp = max(abs(unique.unique_planes[candidates[m]].b), abs(scenes[i].planes[j].b)) + 
 
-					if (dist_temp < best_dist )//&& az_test < 50)
+					if (dist_temp < best_dist && az_test < 50)
 					{
 						//This is the best plane so far
 						best_dist = abs(dist_temp);
@@ -787,12 +787,44 @@ double check_plane_dists(Orientation orient_base, Orientation orient_target, Pla
 	base_rot_vec << p_base.a1, p_base.a2, p_base.a3;
 	target_rot_vec << p_target.a1, p_target.a2, p_target.a3;
 
-	d1 = -1 * base_rot_vec.transpose() * shifted_base + p_base.b_orig;
-	d2 = -1 * target_rot_vec.transpose() * shifted_target + p_target.b_orig;
+	d1 = -1 * base_rot_vec.transpose() * shifted_base + p_base.b;
+	d2 = -1 * target_rot_vec.transpose() * shifted_target + p_target.b;
 
 
 	return abs(abs(d2) - abs(d1));
 
+}
+
+void find_apply_shiftdown(vector<Scene> &scenes, vector<double> &shiftdown)
+{
+	double average_X = 0;
+	double average_Y = 0;
+	double average_Z = 0;
+	for (int i = 0; i < scenes.size(); i++)
+	{
+		average_X = average_X + scenes[i].scene_orientation.X;
+		average_Y = average_Y + scenes[i].scene_orientation.Y;
+		average_Z = average_Z + scenes[i].scene_orientation.Z;
+	}
+
+	average_X = (average_X) / scenes.size();
+	average_Y = (average_Y) / scenes.size();
+	average_Z = (average_Z) / scenes.size();
+
+	// Find shiftdown values
+	shiftdown.push_back(average_X);
+	shiftdown.push_back(average_Y);
+	shiftdown.push_back(average_Z);
+
+	// Apply shiftdown values
+	for (int j = 0; j < scenes.size(); j++)
+	{
+		scenes[j].scene_orientation.X = scenes[j].scene_orientation.X - shiftdown[0];
+		scenes[j].scene_orientation.Y = scenes[j].scene_orientation.Y - shiftdown[1];
+		scenes[j].scene_orientation.Z = scenes[j].scene_orientation.Z - shiftdown[2];
+	}
+
+	
 }
 
 //double check_plane_dists(Orientation orient_base, Orientation orient_target, Plane plane_base, Plane plane_target)
@@ -1058,16 +1090,13 @@ void plane_to_global(Plane &p1, Orientation O1)
 	//Find new plane parameters
 	target_rot_vec = target_plane_vec * R_del;
 
-	//Find the distance. This is done by arbitrarily shifting the Global coordinates
-	// so to not have unnecessairily large numbers
+	//Find the distance. This is shiftdown coordinates
 
-	//shiftdown << O1.X + 1628650, O1.Y + 3658940, O1.Z - 4948610;
 	plane_dist = -1*target_rot_vec * global_translation.transpose() + (p1.b);
 
 	p1.a1 = target_rot_vec(0);
 	p1.a2 = target_rot_vec(1);
 	p1.a3 = target_rot_vec(2);
-	p1.b_orig = p1.b; //save original 
 	p1.b = plane_dist;
 
 

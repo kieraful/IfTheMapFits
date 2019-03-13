@@ -68,8 +68,8 @@ int main() {
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Apple_EOP_Edmond.txt", Orientation_EOP);
 
-	Read_Mat("C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Edmond_Cross_EOP2.txt", Orientation_EOP);
-	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
+	//Read_Mat("C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Edmond_Cross_EOP2.txt", Orientation_EOP);
+	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
 
 	// Load the files into scenes
 	//vector<Scene> scenes = load_scenes(pcd_files, Orientation_EOP);
@@ -78,6 +78,13 @@ int main() {
 
 	 //DEBUG INPUT
 	vector<Scene> scenes = LoadDebugData();
+
+
+	//Get the Shiftdown for distance measurement simplification
+	vector<double> shiftdown;
+	find_apply_shiftdown(scenes, shiftdown);
+	
+
 
 	clog << "\n-------------------------Finished finding planes -------------------------------------------------------\n";
 	clog << "Matching planes....";
