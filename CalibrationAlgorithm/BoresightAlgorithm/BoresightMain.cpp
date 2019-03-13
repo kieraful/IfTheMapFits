@@ -191,7 +191,7 @@ int main() {
 	cout << "Y: " << Y.block(0, 0, 6, 1);
 
 	//for (int iter = 0; iter < 10; iter++)
-`	while (Y(0, 0) > 0.0001 || Y(1, 0) > 0.0001 || Y(2, 0) > 0.0001 || Y(3, 0) > 0.0001 || Y(4, 0) > 0.0001 || Y(5, 0) > 0.0001)
+	while (Y(0, 0) > 0.0001 || Y(1, 0) > 0.0001 || Y(2, 0) > 0.0001 || Y(3, 0) > 0.0001 || Y(4, 0) > 0.0001 || Y(5, 0) > 0.0001)
 	{
 		computeAandw(A_full, A, H, w_full, w, V, u, numPlanes, numScans, numLidPts, bs_params, planeparams, scanparams, pointparams, GNSSINSparams);
 		//cout << "A=" << A_full << "\n\n";
