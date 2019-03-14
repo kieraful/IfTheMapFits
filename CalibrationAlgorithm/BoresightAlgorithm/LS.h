@@ -29,7 +29,7 @@ using namespace Eigen;
 void vec2mat(vector<RowVectorXd>& vec, MatrixXd& mat, int cols);
 
 //Function to compute A
-void computeAandw(MatrixXd& A_full, MatrixXd& A, MatrixXd& H, MatrixXd& w_full, MatrixXd& w, MatrixXd& V, int u, int numPlanes, int numScans, int numLidPts, MatrixXd bs_params, MatrixXd plane_details, MatrixXd scene_details, MatrixXd point_details, MatrixXd GNSS_INS_data);
+void computeAandw(MatrixXd& A_full, MatrixXd& A, MatrixXd& H, MatrixXd& w_full, MatrixXd& w, MatrixXd& V, int u, int numPlanes, int numScans, int numLidPts, MatrixXd& bs_params, MatrixXd& plane_details, MatrixXd& scene_details, MatrixXd& point_details, MatrixXd& GNSS_INS_data);
 
 //Function to compute 6 rows of A for a scan
 MatrixXd computeAScan(int u, int numPlanes, int scanNum);
@@ -70,7 +70,7 @@ MatrixXd computewPlane(double n_xpg, double n_ypg, double n_zpg);
 //Function to compute a row of w for a lidar point
 MatrixXd computewPt(double x_Sjb, double y_Sjb, double z_Sjb,
 	double w_Sb, double phi_Sb, double K_Sb,	
-	double n_xpg, double n_ypg, double n_zpg, double dp_sum,	
+	double n_xpg, double n_ypg, double n_zpg, double d_p,	
 	double x_bjg, double y_bjg, double z_bjg,
 	double w_bjg, double phi_bjg, double K_bjg,
 	double x_sj, double y_sj, double z_sj);

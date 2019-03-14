@@ -1205,7 +1205,7 @@ vector<Scene> LoadDebugData()
 	Scene temp_scene1, temp_scene2, temp_scene3, temp_scene4;
 	vector<Scene> scenes;
 	vector<char *> pcd_files1, pcd_files2, pcd_files3, pcd_files4;
-	char * plane0_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
+	/*char * plane0_0 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
 	char * plane0_1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
 	char * plane0_2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Cloud_Plane_2.pcd";
 
@@ -1230,35 +1230,35 @@ vector<Scene> LoadDebugData()
 	char * orientation1 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O1_Planes\\Orientation.txt";
 	char * orientation2 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O2_Planes\\Orientation.txt";
 	char * orientation3 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O3_Planes\\Orientation.txt";
-	char * orientation4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Orientation.txt";
+	char * orientation4 = "C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Debug_INPUT\\O4_Planes\\Orientation.txt";*/
 	
 
-	//char * plane0_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
-	//char * plane0_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
-	//char * plane0_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_2.pcd";
-	//
-	//char * plane1_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_0.pcd";
-	//char * plane1_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_1.pcd";
-	//char * plane1_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
-	//char * plane1_3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
-	//
-	//char * plane2_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_0.pcd";
-	//char * plane2_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_1.pcd";
-	//char * plane2_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_2.pcd";
-	//
-	//char * plane3_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_0.pcd";
-	//char * plane3_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_1.pcd";
-	//char * plane3_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_2.pcd";
-	//
-	//char * plane_equations1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\PlaneEquations.txt";
-	//char * plane_equations2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\PlaneEquations.txt";
-	//char * plane_equations3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\PlaneEquations.txt";
-	//char * plane_equations4 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\PlaneEquations.txt";
-	//
-	//char * orientation1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Orientation.txt";
-	//char * orientation2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Orientation.txt";
-	//char * orientation3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Orientation.txt";
-	//char * orientation4 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Orientation.txt";
+	char * plane0_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_0.pcd";
+	char * plane0_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_1.pcd";
+	char * plane0_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Cloud_Plane_2.pcd";
+	
+	char * plane1_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_0.pcd";
+	char * plane1_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_1.pcd";
+	char * plane1_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
+	char * plane1_3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Cloud_Plane_2.pcd";
+	
+	char * plane2_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_0.pcd";
+	char * plane2_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_1.pcd";
+	char * plane2_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Cloud_Plane_2.pcd";
+	
+	char * plane3_0 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_0.pcd";
+	char * plane3_1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_1.pcd";
+	char * plane3_2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Cloud_Plane_2.pcd";
+	
+	char * plane_equations1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\PlaneEquations.txt";
+	char * plane_equations2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\PlaneEquations.txt";
+	char * plane_equations3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\PlaneEquations.txt";
+	char * plane_equations4 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\PlaneEquations.txt";
+	
+	char * orientation1 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O1_Planes\\Orientation.txt";
+	char * orientation2 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O2_Planes\\Orientation.txt";
+	char * orientation3 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O3_Planes\\Orientation.txt";
+	char * orientation4 = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\CmakeTests\\Test2\\Build\\Debug_INPUT\\O4_Planes\\Orientation.txt";
 
 
 	pcd_files1.push_back(plane0_0);

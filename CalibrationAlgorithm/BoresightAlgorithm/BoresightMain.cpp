@@ -68,8 +68,8 @@ int main() {
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\Crossiron\\Edmond_Cross_EOP2.txt", Orientation_EOP);
 	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\Apple_EOP_Edmond.txt", Orientation_EOP);
 
-	//Read_Mat("C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Edmond_Cross_EOP2.txt", Orientation_EOP);
-	Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
+	Read_Mat("C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Edmond_Cross_EOP2.txt", Orientation_EOP);
+	//Read_Mat("C:\\Users\\Edmond\\Documents\\School\\Courses\\FifthYear\\ENGO500\\Data\\AppleWarehouse\\AppleEOPs_noheader.txt", Orientation_EOP);
 
 	// Load the files into scenes
 	//vector<Scene> scenes = load_scenes(pcd_files, Orientation_EOP);
@@ -149,9 +149,9 @@ int main() {
 	vec2mat(scene_details, scanparams, 6);
 	vec2mat(point_details, pointparams, 5);
 
-	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\planeparams.txt", planeparams, 5);
-	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\scanparams.txt", scanparams, 5);
-	//Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\pointparams.txt", pointparams, 5);
+	Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\planeparams.txt", planeparams, 5);
+	Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\scanparams.txt", scanparams, 5);
+	Write_Mat("C:\\Users\\kiera.fulton2\\Desktop\\esther\\pointparams.txt", pointparams, 5);
 
 	//Get number of planes, scans, lidar points
 	int numPlanes = planeparams.rows();
@@ -179,38 +179,50 @@ int main() {
 
 	//Change hardcoded values to actual values******************************************************
 	//Set P. Clo is a diagonal matrix so inverse of Clo is a diagonal matrix with each diagonal element inversed.
-	MatrixXd P = MatrixXd::Identity(numScans * 6 + numPlanes + numLidPts, numScans * 6 + numPlanes + numLidPts);
+	MatrixXd P_full = MatrixXd::Identity(numScans * 6 + numPlanes + numLidPts, numScans * 6 + numPlanes + numLidPts);
 	for (int i = 0; i < (numScans * 6); i = i + 6)
 	{
-		P(i, i) = 1 / 0.003;
-		P(i + 1, i + 1) = 1 / pow(0.003, 2);
-		P(i + 2, i + 2) = 1 / pow(0.004, 2);
-		P(i + 3, i + 3) = 1 / pow(0.00069 * 180 / PI, 2);
-		P(i + 4, i + 4) = 1 / pow(0.00070 * 180 / PI, 2);
-		P(i + 5, i + 5) = 1 / pow((0.00466 + 0.00289 + 0.00339) / 3 * 180 / PI, 2);
+		P_full(i, i) = 1 / 0.003;
+		P_full(i + 1, i + 1) = 1 / pow(0.003, 2);
+		P_full(i + 2, i + 2) = 1 / pow(0.004, 2);
+		P_full(i + 3, i + 3) = 1 / pow(0.00069 * 180 / PI, 2);
+		P_full(i + 4, i + 4) = 1 / pow(0.00070 * 180 / PI, 2);
+		P_full(i + 5, i + 5) = 1 / pow((0.00466 + 0.00289 + 0.00339) / 3 * 180 / PI, 2);
 	}
-	P.block(numScans * 6, numScans * 6, numPlanes, numPlanes) = MatrixXd::Identity(numPlanes, numPlanes) * 1 / sqrt(pow(0.003, 2) + pow(0.003, 2) + pow(0.004, 2));
-	P.block(numScans * 6 + numPlanes, numScans * 6 + numPlanes, numLidPts, numLidPts) = MatrixXd::Identity(numLidPts, numLidPts) * 1 / 0.03;
+	P_full.block(numScans * 6, numScans * 6, numPlanes, numPlanes) = MatrixXd::Identity(numPlanes, numPlanes) * 1 / sqrt(pow(0.003, 2) + pow(0.003, 2) + pow(0.004, 2));
+	P_full.block(numScans * 6 + numPlanes, numScans * 6 + numPlanes, numLidPts, numLidPts) = MatrixXd::Identity(numLidPts, numLidPts) * 1 / 0.03;
 
-	int iter = 1;
+	MatrixXd P(numScans * 6 + numLidPts, numScans * 6 + numLidPts);
+	P.block(0, 0, numScans * 6, numScans * 6) = P_full.block(0, 0, numScans * 6, numScans * 6);
+	P.block(numScans * 6, numScans * 6, numLidPts, numLidPts) = P_full.block(numScans * 6 + numPlanes, numScans * 6 + numPlanes, numLidPts, numLidPts);
+
+
+	//cout << endl << P << endl << endl;
+
+
+	int iter = 0;
 	//double mean_Y = 1;
 	//mean_Y > 0.000001
-	cout << "Y: " << Y.block(0, 0, 6, 1);
+	//cout << "Y: " << Y.block(0, 0, 6, 1);
 
 	//for (int iter = 0; iter < 10; iter++)
 	while (Y(0, 0) > 0.0001 || Y(1, 0) > 0.0001 || Y(2, 0) > 0.0001 || Y(3, 0) > 0.0001 || Y(4, 0) > 0.0001 || Y(5, 0) > 0.0001)
 	{
+		iter++;
+
 		computeAandw(A_full, A, H, w_full, w, V, u, numPlanes, numScans, numLidPts, bs_params, planeparams, scanparams, pointparams, GNSSINSparams);
 		//cout << "A=" << A_full << "\n\n";
-		//cout << "w=" << w << "\n\n";
+		cout << "w=" << w << "\n\n";
 
-		N = A_full.transpose() * P * A_full; //Not sure if N is based on the full A, P with plane eqn derivatives or not???******************************
-											 /*cout << "A^T=" << A_full.transpose() << "\n\n";
-											 cout << "P" << P << "\n\n";
-											 cout << "N=" << N << "\n\n";*/
+		//N = A_full.transpose() * P_full * A_full; //Not sure if N is based on the full A, P with plane eqn derivatives or not???******************************
+		/*cout << "A^T=" << A_full.transpose() << "\n\n";
+		cout << "P" << P << "\n\n";*/
+		N = A.transpose() * P * A;
+		//cout << endl << "N=" << N << "\n\n";
 
-		U = -1 * A_full.transpose() * P * w_full; //Not sure if A, P, w here are based on the full A with plane eqn derivatives or not???******************************
-												  //cout << "U=" << U << "\n\n";
+		//U = -1 * A_full.transpose() * P_full * w_full; //Not sure if A, P, w here are based on the full A with plane eqn derivatives or not???******************************
+		//cout << "U=" << U << "\n\n";
+		U = -1 * A.transpose() * P * w;
 
 		B.block(0, 0, u, u) = N;
 		B.block(u, 0, numPlanes, u) = H;
@@ -219,6 +231,10 @@ int main() {
 
 		C.block(0, 0, u, 1) = U;
 		C.block(u, 0, numPlanes, 1) = V;
+
+		MatrixXd BTB = B.transpose()*B;
+		FullPivLU<MatrixXd> B_decomp(BTB);
+		cout << "Is BTB invertible? " << B_decomp.isInvertible() << endl;
 
 		Y = (B.transpose()*B).inverse() * B.transpose() * C;
 		//cout << "Y=" << Y << "\n\n";
