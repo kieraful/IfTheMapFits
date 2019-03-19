@@ -291,20 +291,43 @@ int main() {
 	
 
 	// GEOREFERENCE
+	//Create output file
+	ifstream outputFile;
+	outputFile.open("Georeferenced Point Cloud.txt", ios::in);
+	if (outputFile.fail())
+	{
+		cout << "Problem creating final output file. " << endl;
+	}
+	else
+	{
+		cout << "Created final output file..." << endl;
+	}
+
 	// TODO: Read in LiDAR frame -- or extract frame from full dataset? 
 	MatrixXd lidar_data;
-	//char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
-	//Read_Mat(lidar_file, lidar_data);
+	MatrixXd current_lidar_point;
+	current_lidar_point.resize(1,7); // or however many columns there are in the lidar data
+	//Convert pcap of all point to text file
+	char * lidar_file = "C:\\Users\\kiera.fulton2\\Desktop\\ENGO500\\IfTheMapFits\\CalibrationAlgorithm\\BoresightAlgorithm\\Build\\Cross_01(Frame 0000).txt";
+	Read_Mat(lidar_file, lidar_data);
 
-	// TODO: Match timestamps of GNSS+INS data to that of LiDAR data
-	// Assumes that lidar_data is all points associated with one frame
-	// Need to fix below function so that we can equate reference frame of timestamps
-	//MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data);
+	//TODO: Find start time from IE file
+	//double start_time = something;
+	//int time_count = 0;
+	//double prev_time = 0;
 
-	// TODO: Call georeferencing function
-	//MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
+	//for (int i = 1; i < size(lidar_data); i++){
+		//Retrieve record in lidar data
+		//Take time of lidar data
+		// Find time of lidar data point in GPS seconds
+		//MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data);
 
-	// OPTIONAL: Convert final MatrixXd to pcd::PointCloud or a custom struct
+		// TODO: Call georeferencing function
+		//MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
+
+		// TODO: Read out single georeferenced point and append output file
+	//}
+
 
 	clog << "\n\n FINISHED CALIBRATION\n\n";
 
