@@ -172,7 +172,7 @@ void plane_to_global(Plane &p1, Orientation O1);
 
 Vector4d rotate_translate_plane(Matrix3b3 R, RowVector3d translation, Plane p1);
 
-MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data);
+MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data, double time);
 
 double check_plane_az(Orientation base_O, Orientation target_O, Plane plane_base, Plane plane_target);
 
@@ -184,5 +184,7 @@ vector<Scene> LoadDebugData();
 
 vector<Plane> get_debug_planes(char *filename);
 Orientation get_debug_orientation(char *filename);
+
+void get_hour_day(double GPS_time, double hour, int day);
 
 #endif

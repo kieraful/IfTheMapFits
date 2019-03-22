@@ -289,6 +289,8 @@ int main() {
 	cout << "Final boresight parameters:" << bs_params << endl;
 	cout << Cxhat(0, 0) << endl;
 	
+	//TEMP FOR DEBUGGING
+
 
 	// GEOREFERENCE
 	//Create output file
@@ -312,21 +314,31 @@ int main() {
 	Read_Mat(lidar_file, lidar_data);
 
 	//TODO: Find start time from IE file
-	//double start_time = something;
-	//int time_count = 0;
-	//double prev_time = 0;
+	double start_time = GNSS_INS_data(0, 0);
 
-	//for (int i = 1; i < size(lidar_data); i++){
+	//Convert LiDAR time to GPS week seconds
+	double hour;
+	int day;
+	get_hour_day(start_time, hour, day);
+
+	double prev_time = 0;
+	double current_lidar_time, day, hour, current_gpssec;
+	for (int i = 1; i < size(lidar_data); i++){
 		//Retrieve record in lidar data
-		//Take time of lidar data
+		current_lidar_time = lidar_data(i, 10);
 		// Find time of lidar data point in GPS seconds
-		//MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data);
+		current_gpssec = (day * 86400) + (hour * 3600) + (current_lidar_time / (3.6*pow(10, 6)));
+		
+		//TODO: function to round time to the nearest quarter second
+		
+		MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data, current_gpssec);
 
-		// TODO: Call georeferencing function
+		//TODO: Call georeferencing function
 		//MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
 
-		// TODO: Read out single georeferenced point and append output file
-	//}
+		//TODO: Read out single georeferenced point and append output file
+
+	}
 
 
 	clog << "\n\n FINISHED CALIBRATION\n\n";
