@@ -74,6 +74,7 @@ int main() {
 	// Load the files into scenes
 	//vector<Scene> scenes = load_scenes(pcd_files, Orientation_EOP);
 
+	//``````````````````````````````````````````````````````````````````````START COMMENTING: DEBUGGING GEOREFERENCING STUFF
 
 
 	 //DEBUG INPUT
@@ -291,6 +292,7 @@ int main() {
 	
 	//TEMP FOR DEBUGGING
 
+	//``````````````````````````````````````````````````````````````````````STOP COMMENTING: DEBUGGING GEOREFERENCING STUFF
 
 	// GEOREFERENCE
 	//Create output file
@@ -315,26 +317,48 @@ int main() {
 
 	//TODO: Find start time from IE file
 	double start_time = GNSS_INS_data(0, 0);
+	cout << "Start time = " << start_time << endl;
 
 	//Convert LiDAR time to GPS week seconds
 	double hour;
 	int day;
-	get_hour_day(start_time, hour, day);
+	get_hour_day(start_time, &hour, &day);
+	cout << "Hour: " << hour << " Day: " << day << endl;
 
-	double prev_time = 0;
-	double current_lidar_time, day, hour, current_gpssec;
+	double prev_time = 0.0;
+
 	for (int i = 1; i < size(lidar_data); i++){
 		//Retrieve record in lidar data
-		current_lidar_time = lidar_data(i, 10);
+		double current_lidar_time = lidar_data(i, 10);
 		// Find time of lidar data point in GPS seconds
-		current_gpssec = (day * 86400) + (hour * 3600) + (current_lidar_time / (3.6*pow(10, 6)));
+
+		if (prev_time > current_lidar_time)
+		{
+			hour++;
+			if (hour > 23.0)
+			{
+				hour = 0;
+				day++;
+			}
+		}
+
+		double current_gpssec = (day * 86400) + (hour * 3600) + (current_lidar_time / (3.6*pow(10, 6)));
+		
 		
 		//TODO: function to round time to the nearest quarter second
-		
-		MatrixXd combined_data = merge_data(GNSS_INS_data, lidar_data, current_gpssec);
+		current_gpssec = round_time(current_gpssec);
+		cout << "current_gpssec (rounded): " << current_gpssec << endl;
+
+		MatrixXd combined_data;
+		combined_data = merge_data(GNSS_INS_data, lidar_data, current_gpssec);
 
 		//TODO: Call georeferencing function
-		//MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
+		MatrixXd boresight_leverarm, boresight_angles;
+		boresight_leverarm << 0.0, 0.0, 0.0;
+		boresight_angles << 180.0, 0.0, 90.0;
+		MatrixXd output_cloud = georeference_lidar_point(combined_data, boresight_leverarm, boresight_angles);
+
+		prev_time = current_lidar_time;
 
 		//TODO: Read out single georeferenced point and append output file
 
@@ -343,6 +367,6 @@ int main() {
 
 	clog << "\n\n FINISHED CALIBRATION\n\n";
 
-
+	cin.get();
 	return 0;
 }

@@ -185,6 +185,7 @@ vector<Scene> LoadDebugData();
 vector<Plane> get_debug_planes(char *filename);
 Orientation get_debug_orientation(char *filename);
 
-void get_hour_day(double GPS_time, double hour, int day);
+void get_hour_day(double GPS_time, double *hour, int *day);
 
+double round_time(double time);
 #endif

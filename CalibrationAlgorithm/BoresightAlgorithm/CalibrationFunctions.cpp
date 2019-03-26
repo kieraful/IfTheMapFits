@@ -1122,7 +1122,7 @@ Vector4d rotate_translate_plane(Matrix3b3 R, RowVector3d translation, Plane p1)
 MatrixXd merge_data(MatrixXd IE_data, MatrixXd lidar_data, double time)
 {
 	MatrixXd output;
-	output.resize(11, lidar_data.size());
+	output.resize(lidar_data.rows(), 11);
 	double timestamp = 0;
 
 	for (int i = 0; i < lidar_data.size(); i++)
@@ -1423,7 +1423,7 @@ double get_plane_az(Plane test_plane)
 	meanx = sumx / test_plane.points_on_plane->size();
 	meany = sumy / test_plane.points_on_plane->size();
 
-combined_data
+	//combined_data
 	temp_az = atan2(meanx , meany);
 
 	if (temp_az < 0) { temp_az = (360 * 1 / RAD2DEG) + temp_az; }
@@ -1431,47 +1431,56 @@ combined_data
 	return temp_az;
 }
 
-void get_hour_day(double GPS_time, double hour, int day)
+void get_hour_day(double GPS_time, double *Hour, int *Day)
 {
+
 	if (GPS_time >= 0 && GPS_time < 86400)
 	{
-		day = 0;
+		*Day = 0;
 	}
 	else if (GPS_time >= 86400 && GPS_time < 172800)
 	{
-		day = 1;
+		*Day = 1;
 	}
 	else if (GPS_time >= 172800 && GPS_time < 259200)
 	{
-		day = 2;
+		*Day = 2;
 	}
 	else if (GPS_time >= 259200 && GPS_time < 345600)
 	{
-		day = 3;
+		*Day = 3;
 	}
 	else if (GPS_time >= 345600 && GPS_time < 432000)
 	{
-		day = 4;
+		*Day = 4;
 	}
 	else if (GPS_time >= 432000 && GPS_time < 518400)
 	{
-		day = 5;
+		*Day = 5;
 	}
 	else if (GPS_time >= 518400)
 	{
-		day = 6;
+		*Day = 6;
 	}
 	else
 	{
 		cout << "Problem with first GPS time. " << endl;
 	}
 
-	double temp = GPS_time - (86400 * day);
-	double fractpart;
-	fractpart = modf(temp, &hour);
+	double temp = (GPS_time - (86400 * *Day)) / 3600;
+	*Hour = floor(temp);
 }
 
-//double round_time(double time)
-//{
-//
-//}
+double round_time(double time)
+{
+	double whole, frac;
+	whole = floor(time);
+	frac = time - whole;
+
+	//Round to two decimal places
+	double two_dec = floor(time * 100) / 100;
+
+	//Round to nearest quarter integer
+	double rounded = floor((time * 4) + 0.25) / 4;
+	return rounded;
+}
